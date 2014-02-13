@@ -15,7 +15,7 @@
  */
 package org.terasology.multiBlock.recipe;
 
-import org.terasology.anotherWorld.util.Filter;
+import com.google.common.base.Predicate;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.ActivateEvent;
@@ -38,15 +38,15 @@ import java.util.Map;
  * @author Marcin Sciesinski <marcins78@gmail.com>
  */
 public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe {
-    private Filter<EntityRef> activatorFilter;
-    private Filter<ActivateEvent> activateEventFilter;
-    private Filter<EntityRef> blockFilter;
-    private Filter<Vector3i> sizeFilter;
+    private Predicate<EntityRef> activatorFilter;
+    private Predicate<ActivateEvent> activateEventFilter;
+    private Predicate<EntityRef> blockFilter;
+    private Predicate<Vector3i> sizeFilter;
     private String prefab;
     private MultiBlockCallback<Void> callback;
 
-    public UniformMultiBlockFormItemRecipe(Filter<EntityRef> activatorFilter, Filter<ActivateEvent> activateEventFilter,
-                                           Filter<EntityRef> blockFilter, Filter<Vector3i> sizeFilter,
+    public UniformMultiBlockFormItemRecipe(Predicate<EntityRef> activatorFilter, Predicate<ActivateEvent> activateEventFilter,
+                                           Predicate<EntityRef> blockFilter, Predicate<Vector3i> sizeFilter,
                                            String multiBlockPrefab, MultiBlockCallback<Void> callback) {
         this.activatorFilter = activatorFilter;
         this.activateEventFilter = activateEventFilter;
@@ -58,12 +58,12 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
 
     @Override
     public boolean isActivator(EntityRef item) {
-        return activatorFilter.accepts(item);
+        return activatorFilter.apply(item);
     }
 
     @Override
     public boolean processActivation(ActivateEvent event) {
-        if (!activateEventFilter.accepts(event)) {
+        if (!activateEventFilter.apply(event)) {
             return false;
         }
 
@@ -73,7 +73,7 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
             return false;
         }
 
-        if (!blockFilter.accepts(target)) {
+        if (!blockFilter.apply(target)) {
             return false;
         }
 
@@ -90,13 +90,13 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         Region3i multiBlockRegion = Region3i.createBounded(new Vector3i(minX, minY, minZ), new Vector3i(maxX, maxY, maxZ));
 
         // Check if the size is accepted
-        if (!sizeFilter.accepts(multiBlockRegion.size())) {
+        if (!sizeFilter.apply(multiBlockRegion.size())) {
             return false;
         }
 
         // Now check that all the blocks in the region defined by these boundaries match the criteria
         for (Vector3i blockLocation : multiBlockRegion) {
-            if (!blockFilter.accepts(blockEntityRegistry.getBlockEntityAt(blockLocation))) {
+            if (!blockFilter.apply(blockEntityRegistry.getBlockEntityAt(blockLocation))) {
                 return false;
             }
         }
@@ -132,7 +132,7 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         while (true) {
             Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y, result.z + direction.z);
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
-            if (!blockFilter.accepts(blockEntityAt)) {
+            if (!blockFilter.apply(blockEntityAt)) {
                 return result;
             }
             result = testedLocation;

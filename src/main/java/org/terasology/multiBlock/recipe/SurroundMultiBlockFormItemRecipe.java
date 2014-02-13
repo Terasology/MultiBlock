@@ -15,7 +15,7 @@
  */
 package org.terasology.multiBlock.recipe;
 
-import org.terasology.anotherWorld.util.Filter;
+import com.google.common.base.Predicate;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.ActivateEvent;
@@ -38,16 +38,16 @@ import java.util.Map;
  * @author Marcin Sciesinski <marcins78@gmail.com>
  */
 public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe {
-    private Filter<EntityRef> activator;
-    private Filter<EntityRef> outsideBlock;
-    private Filter<EntityRef> insideBlock;
-    private Filter<Vector3i> sizeFilter;
-    private Filter<ActivateEvent> activateEventFilter;
+    private Predicate<EntityRef> activator;
+    private Predicate<EntityRef> outsideBlock;
+    private Predicate<EntityRef> insideBlock;
+    private Predicate<Vector3i> sizeFilter;
+    private Predicate<ActivateEvent> activateEventFilter;
     private MultiBlockCallback<Void> callback;
     private String prefab;
 
-    public SurroundMultiBlockFormItemRecipe(Filter<EntityRef> activator, Filter<EntityRef> outsideBlock, Filter<EntityRef> insideBlock,
-                                            Filter<Vector3i> sizeFilter, Filter<ActivateEvent> activateEventFilter,
+    public SurroundMultiBlockFormItemRecipe(Predicate<EntityRef> activator, Predicate<EntityRef> outsideBlock, Predicate<EntityRef> insideBlock,
+                                            Predicate<Vector3i> sizeFilter, Predicate<ActivateEvent> activateEventFilter,
                                             String prefab, MultiBlockCallback<Void> callback) {
         this.activator = activator;
         this.outsideBlock = outsideBlock;
@@ -60,12 +60,12 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
 
     @Override
     public boolean isActivator(EntityRef item) {
-        return activator.accepts(item);
+        return activator.apply(item);
     }
 
     @Override
     public boolean processActivation(ActivateEvent event) {
-        if (!activateEventFilter.accepts(event)) {
+        if (!activateEventFilter.apply(event)) {
             return false;
         }
 
@@ -75,7 +75,7 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
             return false;
         }
 
-        if (!outsideBlock.accepts(target)) {
+        if (!outsideBlock.apply(target)) {
             return false;
         }
 
@@ -98,7 +98,7 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
         // Now check that all the blocks in the region defined by these boundaries match the criteria
         Region3i outsideBlockRegion = Region3i.createBounded(new Vector3i(minX, minY, minZ), new Vector3i(maxX, maxY, maxZ));
 
-        if (!sizeFilter.accepts(outsideBlockRegion.size())) {
+        if (!sizeFilter.apply(outsideBlockRegion.size())) {
             return false;
         }
 
@@ -106,10 +106,10 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
         for (Vector3i blockLocation : outsideBlockRegion) {
             EntityRef blockEntity = blockEntityRegistry.getBlockEntityAt(blockLocation);
             if (insideBlockRegion.encompasses(blockLocation)) {
-                if (!insideBlock.accepts(blockEntity)) {
+                if (!insideBlock.apply(blockEntity)) {
                     return false;
                 }
-            } else if (!outsideBlock.accepts(blockEntity)) {
+            } else if (!outsideBlock.apply(blockEntity)) {
                 return false;
             }
         }
@@ -146,7 +146,7 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
         while (true) {
             Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y, result.z + direction.z);
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
-            if (!outsideBlock.accepts(blockEntityAt)) {
+            if (!outsideBlock.apply(blockEntityAt)) {
                 return result;
             }
             result = testedLocation;

@@ -15,10 +15,10 @@
  */
 package org.terasology.multiBlock;
 
-import org.terasology.anotherWorld.util.Filter;
+import com.google.common.base.Predicate;
 import org.terasology.math.Vector3i;
 
-public class BasicHorizontalSizeFilter implements Filter<Vector3i> {
+public class BasicHorizontalSizeFilter implements Predicate<Vector3i> {
     private int minHorizontal;
     private int maxHorizontal;
     private int minHeight;
@@ -32,7 +32,7 @@ public class BasicHorizontalSizeFilter implements Filter<Vector3i> {
     }
 
     @Override
-    public boolean accepts(Vector3i value) {
+    public boolean apply(Vector3i value) {
         return minHorizontal == Math.min(value.x, value.z)
                 && maxHorizontal == Math.max(value.x, value.z)
                 && minHeight <= value.y && maxHeight >= value.y;

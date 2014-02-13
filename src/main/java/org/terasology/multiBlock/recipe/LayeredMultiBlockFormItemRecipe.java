@@ -15,7 +15,7 @@
  */
 package org.terasology.multiBlock.recipe;
 
-import org.terasology.anotherWorld.util.Filter;
+import com.google.common.base.Predicate;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.ActivateEvent;
@@ -41,16 +41,16 @@ import java.util.Map;
  * @author Marcin Sciesinski <marcins78@gmail.com>
  */
 public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe {
-    private Filter<EntityRef> itemFilter;
-    private Filter<Vector2i> sizeFilter;
-    private Filter<ActivateEvent> activateEventFilter;
+    private Predicate<EntityRef> itemFilter;
+    private Predicate<Vector2i> sizeFilter;
+    private Predicate<ActivateEvent> activateEventFilter;
     private String prefab;
     private MultiBlockCallback<int[]> callback;
 
     private List<LayerDefinition> layerDefinitions = new ArrayList<>();
 
-    public LayeredMultiBlockFormItemRecipe(Filter<EntityRef> itemFilter, Filter<Vector2i> sizeFilter,
-                                           Filter<ActivateEvent> activateEventFilter, String prefab, MultiBlockCallback<int[]> callback) {
+    public LayeredMultiBlockFormItemRecipe(Predicate<EntityRef> itemFilter, Predicate<Vector2i> sizeFilter,
+                                           Predicate<ActivateEvent> activateEventFilter, String prefab, MultiBlockCallback<int[]> callback) {
         this.itemFilter = itemFilter;
         this.sizeFilter = sizeFilter;
         this.activateEventFilter = activateEventFilter;
@@ -60,10 +60,10 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
 
     @Override
     public boolean isActivator(EntityRef item) {
-        return itemFilter.accepts(item);
+        return itemFilter.apply(item);
     }
 
-    public void addLayer(int minHeight, int maxHeight, Filter<EntityRef> entityFilter) {
+    public void addLayer(int minHeight, int maxHeight, Predicate<EntityRef> entityFilter) {
         if (minHeight > maxHeight || minHeight < 0) {
             throw new IllegalArgumentException("Invalid values for minHeight and maxHeight");
         }
@@ -72,7 +72,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
 
     @Override
     public boolean processActivation(ActivateEvent event) {
-        if (!activateEventFilter.accepts(event)) {
+        if (!activateEventFilter.apply(event)) {
             return false;
         }
 
@@ -84,7 +84,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
 
         for (int i = 0; i < layerDefinitions.size(); i++) {
             LayerDefinition layerDefinition = layerDefinitions.get(i);
-            if (layerDefinition.entityFilter.accepts(target)) {
+            if (layerDefinition.entityFilter.apply(target)) {
                 if (processDetectionForLayer(i, targetBlock.getPosition())) {
                     return true;
                 }
@@ -97,7 +97,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
     private boolean processDetectionForLayer(int layerIndex, Vector3i basePosition) {
         BlockEntityRegistry blockEntityRegistry = CoreRegistry.get(BlockEntityRegistry.class);
         LayerDefinition layerDefinition = layerDefinitions.get(layerIndex);
-        Filter<EntityRef> entityFilter = layerDefinition.entityFilter;
+        Predicate<EntityRef> entityFilter = layerDefinition.entityFilter;
         int minX = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.east()).x;
         int maxX = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.west()).x;
         int minZ = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.south()).z;
@@ -105,7 +105,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
 
         // First check if the size is accepted at all
         Vector2i multiBlockHorizontalSize = new Vector2i(maxX - minX + 1, maxZ - minZ + 1);
-        if (!sizeFilter.accepts(multiBlockHorizontalSize)) {
+        if (!sizeFilter.apply(multiBlockHorizontalSize)) {
             return false;
         }
 
@@ -159,7 +159,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
                         new Vector3i(maxX, validationY + layerHeights[i] - 1, maxZ));
                 LayerDefinition validateLayerDefinition = layerDefinitions.get(i);
                 for (Vector3i position : layerRegion) {
-                    if (!validateLayerDefinition.entityFilter.accepts(blockEntityRegistry.getBlockEntityAt(position))) {
+                    if (!validateLayerDefinition.entityFilter.apply(blockEntityRegistry.getBlockEntityAt(position))) {
                         return false;
                     }
                 }
@@ -194,12 +194,12 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         return true;
     }
 
-    private Vector3i getLastMatchingInDirection(BlockEntityRegistry blockEntityRegistry, Filter<EntityRef> entityFilter, Vector3i location, Vector3i direction) {
+    private Vector3i getLastMatchingInDirection(BlockEntityRegistry blockEntityRegistry, Predicate<EntityRef> entityFilter, Vector3i location, Vector3i direction) {
         Vector3i result = location;
         while (true) {
             Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y, result.z + direction.z);
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
-            if (!entityFilter.accepts(blockEntityAt)) {
+            if (!entityFilter.apply(blockEntityAt)) {
                 return result;
             }
             result = testedLocation;
@@ -209,9 +209,9 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
     private static final class LayerDefinition {
         private int minHeight;
         private int maxHeight;
-        private Filter<EntityRef> entityFilter;
+        private Predicate<EntityRef> entityFilter;
 
-        private LayerDefinition(int minHeight, int maxHeight, Filter<EntityRef> entityFilter) {
+        private LayerDefinition(int minHeight, int maxHeight, Predicate<EntityRef> entityFilter) {
             this.minHeight = minHeight;
             this.maxHeight = maxHeight;
             this.entityFilter = entityFilter;
