@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,25 +16,20 @@
 package org.terasology.multiBlock;
 
 import com.google.common.base.Predicate;
-import org.terasology.math.Vector3i;
+import org.terasology.math.Vector2i;
 
-public class BasicHorizontalSizeFilter implements Predicate<Vector3i> {
+public class Basic2DSizeFilter implements Predicate<Vector2i> {
     private int minHorizontal;
     private int maxHorizontal;
-    private int minHeight;
-    private int maxHeight;
 
-    public BasicHorizontalSizeFilter(int horizontal1Size, int horizontal2Size, int minHeight, int maxHeight) {
+    public Basic2DSizeFilter(int horizontal1Size, int horizontal2Size) {
         minHorizontal = Math.min(horizontal1Size, horizontal2Size);
         maxHorizontal = Math.max(horizontal1Size, horizontal2Size);
-        this.minHeight = minHeight;
-        this.maxHeight = maxHeight;
     }
 
     @Override
-    public boolean apply(Vector3i value) {
-        return minHorizontal == Math.min(value.x, value.z)
-                && maxHorizontal == Math.max(value.x, value.z)
-                && minHeight <= value.y && maxHeight >= value.y;
+    public boolean apply(Vector2i value) {
+        return minHorizontal == Math.min(value.x, value.y)
+                && maxHorizontal == Math.max(value.x, value.y);
     }
 }

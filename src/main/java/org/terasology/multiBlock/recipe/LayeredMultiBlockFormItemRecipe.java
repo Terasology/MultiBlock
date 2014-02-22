@@ -85,7 +85,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         for (int i = 0; i < layerDefinitions.size(); i++) {
             LayerDefinition layerDefinition = layerDefinitions.get(i);
             if (layerDefinition.entityFilter.apply(target)) {
-                if (processDetectionForLayer(i, targetBlock.getPosition())) {
+                if (processDetectionForLayer(event, i, targetBlock.getPosition())) {
                     return true;
                 }
             }
@@ -94,7 +94,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         return false;
     }
 
-    private boolean processDetectionForLayer(int layerIndex, Vector3i basePosition) {
+    private boolean processDetectionForLayer(ActivateEvent event, int layerIndex, Vector3i basePosition) {
         BlockEntityRegistry blockEntityRegistry = CoreRegistry.get(BlockEntityRegistry.class);
         LayerDefinition layerDefinition = layerDefinitions.get(layerIndex);
         Predicate<EntityRef> entityFilter = layerDefinition.entityFilter;
@@ -109,8 +109,8 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
             return false;
         }
 
-        int minY = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.down()).z;
-        int maxY = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.up()).z;
+        int minY = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.down()).y;
+        int maxY = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.up()).y;
 
         // Then check if this layer height is accepted
         int layerHeight = maxY - minY + 1;
@@ -169,16 +169,18 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
 
         Region3i multiBlockRegion = Region3i.createBounded(new Vector3i(minX, lastLayerYDown, minZ), new Vector3i(maxX, lastLayerYUp, maxZ));
 
-        Map<Vector3i, Block> replacementMap = callback.getReplacementMap(multiBlockRegion, layerHeights);
+        if (callback != null) {
+            Map<Vector3i, Block> replacementMap = callback.getReplacementMap(multiBlockRegion, layerHeights);
 
-        // Ok, now we can replace the blocks
-        WorldProvider worldProvider = CoreRegistry.get(WorldProvider.class);
-        EntityRef worldEntity = worldProvider.getWorldEntity();
-        PlaceBlocks event = new PlaceBlocks(replacementMap);
-        worldEntity.send(event);
+            // Ok, now we can replace the blocks
+            WorldProvider worldProvider = CoreRegistry.get(WorldProvider.class);
+            EntityRef worldEntity = worldProvider.getWorldEntity();
+            PlaceBlocks placeBlocksEvent = new PlaceBlocks(replacementMap, event.getInstigator());
+            worldEntity.send(placeBlocksEvent);
 
-        if (event.isConsumed()) {
-            return false;
+            if (placeBlocksEvent.isConsumed()) {
+                return false;
+            }
         }
 
         // Create the block region entity
@@ -187,7 +189,9 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         multiBlockEntity.addComponent(new BlockRegionComponent(multiBlockRegion));
         multiBlockEntity.addComponent(new LocationComponent(multiBlockRegion.center()));
 
-        callback.multiBlockFormed(multiBlockRegion, multiBlockEntity, layerHeights);
+        if (callback != null) {
+            callback.multiBlockFormed(multiBlockRegion, multiBlockEntity, layerHeights);
+        }
 
         multiBlockEntity.send(new MultiBlockFormed(event.getInstigator()));
 
