@@ -4,10 +4,6 @@
     "author" : "Marcin Sciesinski <marcins78@gmail.com>",
     "displayName" : "MultiBlock",
     "description" : "Simplifies creating multi-block structures",
-    "dependencies" : [
-            {
-                "id" : "AnotherWorld",
-                "minVersion" : "0.1.0"
-            }],
+    "dependencies" : [],
     "isServerSideOnly" : false
 }
