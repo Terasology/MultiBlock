@@ -33,8 +33,9 @@ public class MultiBlockFormingSystem extends BaseComponentSystem {
     @In
     private MultiBlockFormRecipeRegistry recipeRegistry;
 
-    @ReceiveEvent(components = {ItemComponent.class})
-    public void formMultiBlockWithItem(ActivateEvent event, EntityRef item) {
+    @ReceiveEvent
+    public void formMultiBlockWithItem(ActivateEvent event, EntityRef item,
+                                       ItemComponent itemComponent) {
         for (MultiBlockFormItemRecipe multiBlockFormItemRecipe : recipeRegistry.getMultiBlockFormItemRecipes()) {
             if (multiBlockFormItemRecipe.isActivator(item)) {
                 if (multiBlockFormItemRecipe.processActivation(event)) {
