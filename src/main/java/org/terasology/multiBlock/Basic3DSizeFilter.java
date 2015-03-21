@@ -16,7 +16,7 @@
 package org.terasology.multiBlock;
 
 import com.google.common.base.Predicate;
-import org.terasology.math.Vector3i;
+import org.terasology.math.geom.Vector3i;
 
 public class Basic3DSizeFilter implements Predicate<Vector3i> {
     private int minHorizontal;

@@ -17,7 +17,7 @@ package org.terasology.multiBlock;
 
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.math.Region3i;
-import org.terasology.math.Vector3i;
+import org.terasology.math.geom.Vector3i;
 import org.terasology.world.block.Block;
 
 import java.util.Map;
