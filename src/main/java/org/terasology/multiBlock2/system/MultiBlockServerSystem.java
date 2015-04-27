@@ -23,7 +23,6 @@ import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.entity.lifecycleEvents.BeforeRemoveComponent;
 import org.terasology.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
 import org.terasology.entitySystem.entity.lifecycleEvents.OnAddedComponent;
-import org.terasology.entitySystem.event.ConsumableEvent;
 import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
@@ -159,14 +158,14 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
 
     @ReceiveEvent
     public void onUnloadedMultiBlockBeingDamaged(BeforeDamagedEvent event, EntityRef entity, MultiBlockMemberComponent multiBlockMember, BlockComponent block) {
-        if (isEntityPartOfMultiBlockNotFullyLoaded(entity)) {
+        if (isEntityPartOfNotFullyLoadedMultiBlock(entity)) {
             event.consume();
         }
     }
 
     @ReceiveEvent
     public void onUnloadedMultiBlockBeingDamaged(BeforeDamagedEvent event, EntityRef entity, MultiBlockMainComponent multiBlockMain, BlockComponent block) {
-        if (isEntityPartOfMultiBlockNotFullyLoaded(entity)) {
+        if (isEntityPartOfNotFullyLoadedMultiBlock(entity)) {
             event.consume();
         }
     }
@@ -175,14 +174,14 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
     public void onMultiBlockBlocksReplaced(PlaceBlocks event, EntityRef world) {
         for (Vector3i vector3i : event.getBlocks().keySet()) {
             EntityRef blockEntity = blockEntityRegistry.getBlockEntityAt(vector3i);
-            if (isEntityPartOfMultiBlockNotFullyLoaded(blockEntity)) {
+            if (isEntityPartOfNotFullyLoadedMultiBlock(blockEntity)) {
                 event.consume();
                 break;
             }
         }
     }
 
-    private boolean isEntityPartOfMultiBlockNotFullyLoaded(EntityRef entity) {
+    private boolean isEntityPartOfNotFullyLoadedMultiBlock(EntityRef entity) {
         MultiBlockMainComponent multiBlockMain = entity.getComponent(MultiBlockMainComponent.class);
         if (multiBlockMain != null) {
             return !worldProvider.isRegionRelevant(multiBlockMain.getAabb());
