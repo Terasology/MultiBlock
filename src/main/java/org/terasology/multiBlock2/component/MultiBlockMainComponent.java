@@ -21,7 +21,9 @@ import org.terasology.math.Region3i;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.world.block.ForceBlockActive;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -29,7 +31,7 @@ import java.util.Set;
  */
 @ForceBlockActive
 public class MultiBlockMainComponent implements Component {
-    private Set<Vector3i> multiBlockMembers;
+    private List<Vector3i> multiBlockMembers;
     private Region3i aabb;
     private EntityRef multiBlockEntity;
     private String multiBlockType;
@@ -37,15 +39,15 @@ public class MultiBlockMainComponent implements Component {
     public MultiBlockMainComponent() {
     }
 
-    public MultiBlockMainComponent(Set<Vector3i> multiBlockMembers, Region3i aabb, EntityRef multiBlockEntity, String multiBlockType) {
+    public MultiBlockMainComponent(List<Vector3i> multiBlockMembers, Region3i aabb, EntityRef multiBlockEntity, String multiBlockType) {
         this.multiBlockMembers = multiBlockMembers;
         this.aabb = aabb;
         this.multiBlockEntity = multiBlockEntity;
         this.multiBlockType = multiBlockType;
     }
 
-    public Set<Vector3i> getMultiBlockMembers() {
-        return Collections.unmodifiableSet(multiBlockMembers);
+    public Collection<Vector3i> getMultiBlockMembers() {
+        return Collections.unmodifiableList(multiBlockMembers);
     }
 
     public Region3i getAabb() {
