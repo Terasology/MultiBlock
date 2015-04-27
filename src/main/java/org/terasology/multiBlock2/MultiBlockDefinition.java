@@ -17,10 +17,10 @@ package org.terasology.multiBlock2;
 
 import org.terasology.math.geom.Vector3i;
 
-import java.util.Set;
+import java.util.Collection;
 
 public interface MultiBlockDefinition {
     public String getMultiBlockType();
     public Vector3i getMainBlock();
-    public Set<Vector3i> getMemberBlocks();
+    public Collection<Vector3i> getMemberBlocks();
 }

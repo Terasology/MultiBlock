@@ -15,16 +15,23 @@
  */
 package org.terasology.multiBlock2.event;
 
+import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.event.Event;
 
 public class MultiBlockLoaded implements Event {
     private String type;
+    private EntityRef mainBlockEntity;
 
-    public MultiBlockLoaded(String type) {
+    public MultiBlockLoaded(String type, EntityRef mainBlockEntity) {
         this.type = type;
+        this.mainBlockEntity = mainBlockEntity;
     }
 
     public String getType() {
         return type;
+    }
+
+    public EntityRef getMainBlockEntity() {
+        return mainBlockEntity;
     }
 }

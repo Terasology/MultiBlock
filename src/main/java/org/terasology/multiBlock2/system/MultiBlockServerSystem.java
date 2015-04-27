@@ -18,6 +18,7 @@ package org.terasology.multiBlock2.system;
 import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.entitySystem.entity.EntityBuilder;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.entity.lifecycleEvents.BeforeRemoveComponent;
@@ -27,6 +28,7 @@ import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
+import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.health.BeforeDamagedEvent;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.math.Region3i;
@@ -51,6 +53,7 @@ import org.terasology.world.block.entity.placement.PlaceBlocks;
 import org.terasology.world.chunks.ChunkConstants;
 import org.terasology.world.chunks.event.BeforeChunkUnload;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,7 +64,7 @@ import java.util.Set;
 
 @RegisterSystem(RegisterMode.AUTHORITY)
 @Share(MultiBlockRegistry.class)
-public class MultiBlockServerSystem extends BaseComponentSystem implements MultiBlockRegistry {
+public class MultiBlockServerSystem extends BaseComponentSystem implements MultiBlockRegistry, UpdateSubscriberSystem {
     private static final Logger logger = LoggerFactory.getLogger(MultiBlockServerSystem.class);
 
     @In
@@ -76,6 +79,42 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
     private Map<Region3i, EntityRef> loadedMultiBlocks = new HashMap<>();
 
     private boolean internallyMutating = false;
+
+    private Set<Vector3i> pendingMultiBlockPartsChecks = new HashSet<>();
+
+    // Horrible workaround for the fact, that system is notified about block entities being loaded via OnActivatedComponent
+    // before the chunk they are in is "relevant", we need to keep querying worldProvider, until it was merged to restore
+    // the multi-blocks, also oddly, this update method can be called only when some of the entities from the same chunk
+    // have been loaded.
+    @Override
+    public void update(float delta) {
+        Iterator<Vector3i> iterator = pendingMultiBlockPartsChecks.iterator();
+        while (iterator.hasNext()) {
+            Vector3i position = iterator.next();
+            if (worldProvider.isBlockRelevant(position)) {
+                EntityRef blockEntity = blockEntityRegistry.getBlockEntityAt(position);
+                MultiBlockMainComponent multiBlockMain = blockEntity.getComponent(MultiBlockMainComponent.class);
+                if (multiBlockMain != null) {
+                    processLoadedMultiBlockMain(blockEntity, multiBlockMain, position);
+                } else {
+                    MultiBlockMemberComponent multiBlockMember = blockEntity.getComponent(MultiBlockMemberComponent.class);
+                    Vector3i mainBlockLocation = multiBlockMember.getMainBlockLocation();
+                    if (worldProvider.isBlockRelevant(mainBlockLocation)) {
+                        EntityRef mainBlockEntity = blockEntityRegistry.getBlockEntityAt(mainBlockLocation);
+                        multiBlockMain = mainBlockEntity.getComponent(MultiBlockMainComponent.class);
+                        // The entities are not loaded at the same time it seems, so I need to wait for the main one
+                        // to be loaded, even if it is already relevant
+                        if (multiBlockMain != null) {
+                            processLoadedMultiBlockMain(mainBlockEntity, multiBlockMain, mainBlockLocation);
+                            iterator.remove();
+                        }
+                    } else {
+                        iterator.remove();
+                    }
+                }
+            }
+        }
+    }
 
     @Override
     public void registerMultiBlockType(String multiBlockCandidate, MultiBlockRecipe<?> multiBlockRecipe) {
@@ -130,29 +169,49 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
             if (!chunkRegion.intersect(multiBlock.getKey()).isEmpty()) {
                 EntityRef multiBlockEntity = multiBlock.getValue();
                 MultiBlockComponent component = multiBlockEntity.getComponent(MultiBlockComponent.class);
-                multiBlockEntity.send(new BeforeMultiBlockUnloaded(component.getType()));
+                multiBlockEntity.send(new BeforeMultiBlockUnloaded(component.getType(), component.getMainBlockEntity()));
                 iterator.remove();
                 multiBlockEntity.destroy();
             }
         }
     }
 
+//    @ReceiveEvent
+//    public void afterChunkLoaded(OnChunkLoaded chunkLoaded, EntityRef world) {
+//        Region3i chunkRegion = getChunkRegion(chunkLoaded.getChunkPos());
+//        for (Vector3i vector3i : chunkRegion) {
+//            EntityRef blockEntity = blockEntityRegistry.getBlockEntityAt(vector3i);
+//            MultiBlockMainComponent multiBlockMain = blockEntity.getComponent(MultiBlockMainComponent.class);
+//            if (multiBlockMain != null) {
+//                processLoadedMultiBlockMain(blockEntity, multiBlockMain, vector3i);
+//            } else {
+//                MultiBlockMemberComponent multiBlockMember = blockEntity.getComponent(MultiBlockMemberComponent.class);
+//                if (multiBlockMember != null && worldProvider.isBlockRelevant(multiBlockMember.getMainBlockLocation())) {
+//                    Vector3i mainBlockLocation = multiBlockMember.getMainBlockLocation();
+//                    EntityRef mainBlockEntity = blockEntityRegistry.getBlockEntityAt(mainBlockLocation);
+//                    processLoadedMultiBlockMain(mainBlockEntity, mainBlockEntity.getComponent(MultiBlockMainComponent.class), mainBlockLocation);
+//                }
+//            }
+//        }
+//    }
+//
     @ReceiveEvent
     public void onMultiBlockBeingLoaded(OnActivatedComponent event, EntityRef entity, MultiBlockMainComponent multiBlockMain, BlockComponent block) {
         if (!internallyMutating) {
-            processLoadedMultiBlockMain(multiBlockMain, block);
+            pendingMultiBlockPartsChecks.add(block.getPosition());
+//            processLoadedMultiBlockMain(entity, multiBlockMain,  block.getPosition());
         }
     }
 
     @ReceiveEvent
     public void onMultiBlockBeingLoaded(OnActivatedComponent event, EntityRef entity, MultiBlockMemberComponent multiBlockMember, BlockComponent block) {
         if (!internallyMutating) {
-            Vector3i mainLocation = multiBlockMember.getMainBlockLocation();
-            if (worldProvider.isBlockRelevant(mainLocation)) {
-                EntityRef mainBlockEntity = blockEntityRegistry.getBlockEntityAt(mainLocation);
-                MultiBlockMainComponent multiBlockMain = mainBlockEntity.getComponent(MultiBlockMainComponent.class);
-                processLoadedMultiBlockMain(multiBlockMain, mainBlockEntity.getComponent(BlockComponent.class));
-            }
+            pendingMultiBlockPartsChecks.add(block.getPosition());
+//            if (worldProvider.isBlockRelevant(mainLocation)) {
+//                EntityRef mainBlockEntity = blockEntityRegistry.getBlockEntityAt(mainLocation);
+//                MultiBlockMainComponent multiBlockMain = mainBlockEntity.getComponent(MultiBlockMainComponent.class);
+//                processLoadedMultiBlockMain(mainBlockEntity, multiBlockMain, mainBlockEntity.getComponent(BlockComponent.class).getPosition());
+//            }
         }
     }
 
@@ -198,11 +257,14 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         return false;
     }
 
-    private void processLoadedMultiBlockMain(MultiBlockMainComponent multiBlockMain, BlockComponent block) {
+    private void processLoadedMultiBlockMain(EntityRef mainBlockEntity, MultiBlockMainComponent multiBlockMain, Vector3i position) {
         if (!loadedMultiBlocks.containsKey(multiBlockMain.getAabb())
                 && worldProvider.isRegionRelevant(multiBlockMain.getAabb())) {
-            EntityRef multiBlockEntity = createMultiBlockEntity(block.getPosition(), multiBlockMain.getMultiBlockType());
-            multiBlockEntity.send(new MultiBlockLoaded(multiBlockMain.getMultiBlockType()));
+            EntityRef multiBlockEntity = createMultiBlockEntity(mainBlockEntity, position, multiBlockMain.getMultiBlockType());
+
+            loadedMultiBlocks.put(multiBlockMain.getAabb(), multiBlockEntity);
+
+            multiBlockEntity.send(new MultiBlockLoaded(multiBlockMain.getMultiBlockType(), mainBlockEntity));
         }
     }
 
@@ -238,14 +300,16 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         Vector3i mainLocation = definition.getMainBlock();
         String multiBlockType = definition.getMultiBlockType();
 
-        Set<Vector3i> memberLocations = definition.getMemberBlocks();
+        Collection<Vector3i> memberLocations = definition.getMemberBlocks();
         Region3i aabb = createAABB(mainLocation, memberLocations);
 
-        EntityRef multiBlockEntity = createMultiBlockEntity(mainLocation, multiBlockType);
+        EntityRef mainBlockEntity = blockEntityRegistry.getBlockEntityAt(mainLocation);
+
+        EntityRef multiBlockEntity = createMultiBlockEntity(mainBlockEntity, mainLocation, multiBlockType);
 
         internallyMutating = true;
         try {
-            blockEntityRegistry.getBlockEntityAt(mainLocation).addComponent(
+            mainBlockEntity.addComponent(
                     new MultiBlockMainComponent(new LinkedList<>(memberLocations), aabb, multiBlockEntity, multiBlockType));
 
             for (Vector3i memberLocation : memberLocations) {
@@ -260,14 +324,18 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         multiBlockEntity.send(new MultiBlockFormed(multiBlockType, definition));
     }
 
-    private EntityRef createMultiBlockEntity(Vector3i mainLocation, String multiBlockType) {
+    private EntityRef createMultiBlockEntity(EntityRef mainBlockEntity, Vector3i mainLocation, String multiBlockType) {
         LocationComponent locationComponent = new LocationComponent(mainLocation.toVector3f());
-        MultiBlockComponent multiBlockComponent = new MultiBlockComponent(multiBlockType);
+        MultiBlockComponent multiBlockComponent = new MultiBlockComponent(multiBlockType, mainBlockEntity);
 
-        return entityManager.create(locationComponent, multiBlockComponent);
+        EntityBuilder entityBuilder = entityManager.newBuilder();
+        entityBuilder.setPersistent(false);
+        entityBuilder.addComponent(locationComponent);
+        entityBuilder.addComponent(multiBlockComponent);
+        return entityBuilder.build();
     }
 
-    private Region3i createAABB(Vector3i mainLocation, Set<Vector3i> memberLocations) {
+    private Region3i createAABB(Vector3i mainLocation, Collection<Vector3i> memberLocations) {
         Region3i aabb = Region3i.createFromMinAndSize(mainLocation, new Vector3i(1, 1, 1));
         for (Vector3i memberLocation : memberLocations) {
             aabb.expandToContain(memberLocation);

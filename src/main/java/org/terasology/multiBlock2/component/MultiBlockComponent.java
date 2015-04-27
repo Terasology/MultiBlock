@@ -16,21 +16,28 @@
 package org.terasology.multiBlock2.component;
 
 import org.terasology.entitySystem.Component;
+import org.terasology.entitySystem.entity.EntityRef;
 
 /**
  * Not for external use!
  */
 public class MultiBlockComponent implements Component {
     private String type;
+    private EntityRef mainBlockEntity;
 
     public MultiBlockComponent() {
     }
 
-    public MultiBlockComponent(String type) {
+    public MultiBlockComponent(String type, EntityRef mainBlockEntity) {
         this.type = type;
+        this.mainBlockEntity = mainBlockEntity;
     }
 
     public String getType() {
         return type;
+    }
+
+    public EntityRef getMainBlockEntity() {
+        return mainBlockEntity;
     }
 }
