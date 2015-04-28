@@ -2,7 +2,7 @@
     "id" : "MultiBlock",
     "version" : "0.1.0",
     "author" : "Marcin Sciesinski <marcins78@gmail.com>",
-    "displayName" : "MultiBlock",
+    "displayName" : "Multi Block",
     "description" : "Simplifies creating multi-block structures",
     "dependencies" : [],
     "isServerSideOnly" : false
