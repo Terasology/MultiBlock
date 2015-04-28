@@ -98,14 +98,18 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
                     processLoadedMultiBlockMain(blockEntity, multiBlockMain, position);
                 } else {
                     MultiBlockMemberComponent multiBlockMember = blockEntity.getComponent(MultiBlockMemberComponent.class);
-                    Vector3i mainBlockLocation = multiBlockMember.getMainBlockLocation();
-                    if (worldProvider.isBlockRelevant(mainBlockLocation)) {
-                        EntityRef mainBlockEntity = blockEntityRegistry.getBlockEntityAt(mainBlockLocation);
-                        multiBlockMain = mainBlockEntity.getComponent(MultiBlockMainComponent.class);
-                        // The entities are not loaded at the same time it seems, so I need to wait for the main one
-                        // to be loaded, even if it is already relevant
-                        if (multiBlockMain != null) {
-                            processLoadedMultiBlockMain(mainBlockEntity, multiBlockMain, mainBlockLocation);
+                    if (multiBlockMember != null) {
+                        Vector3i mainBlockLocation = multiBlockMember.getMainBlockLocation();
+                        if (worldProvider.isBlockRelevant(mainBlockLocation)) {
+                            EntityRef mainBlockEntity = blockEntityRegistry.getBlockEntityAt(mainBlockLocation);
+                            multiBlockMain = mainBlockEntity.getComponent(MultiBlockMainComponent.class);
+                            // The entities are not loaded at the same time it seems, so I need to wait for the main one
+                            // to be loaded, even if it is already relevant
+                            if (multiBlockMain != null) {
+                                processLoadedMultiBlockMain(mainBlockEntity, multiBlockMain, mainBlockLocation);
+                                iterator.remove();
+                            }
+                        } else {
                             iterator.remove();
                         }
                     } else {
@@ -283,6 +287,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
             EntityRef multiBlockEntity = createMultiBlockEntity(mainBlockEntity, position, multiBlockMain.getMultiBlockType());
 
             loadedMultiBlocks.put(multiBlockMain.getAabb(), multiBlockEntity);
+            multiBlockMain.setMultiBlockEntity(multiBlockEntity);
 
             multiBlockEntity.send(new MultiBlockLoaded(multiBlockMain.getMultiBlockType(), mainBlockEntity));
         }
@@ -358,7 +363,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
     private Region3i createAABB(Vector3i mainLocation, Collection<Vector3i> memberLocations) {
         Region3i aabb = Region3i.createFromMinAndSize(mainLocation, new Vector3i(1, 1, 1));
         for (Vector3i memberLocation : memberLocations) {
-            aabb.expandToContain(memberLocation);
+            aabb = aabb.expandToContain(memberLocation);
         }
         return aabb;
     }

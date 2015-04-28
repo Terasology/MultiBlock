@@ -61,4 +61,8 @@ public class MultiBlockMainComponent implements Component {
     public String getMultiBlockType() {
         return multiBlockType;
     }
+
+    public void setMultiBlockEntity(EntityRef multiBlockEntity) {
+        this.multiBlockEntity = multiBlockEntity;
+    }
 }
