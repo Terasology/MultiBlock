@@ -121,6 +121,26 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         multiBlockRecipeMap.put(multiBlockCandidate, multiBlockRecipe);
     }
 
+    @Override
+    public EntityRef getMultiBlockAtLocation(Vector3i location, String type) {
+        for (Map.Entry<Region3i, EntityRef> region3iEntityRefEntry : loadedMultiBlocks.entrySet()) {
+            if (region3iEntityRefEntry.getKey().encompasses(location)) {
+                EntityRef entity = region3iEntityRefEntry.getValue();
+                MultiBlockComponent multiBlock = entity.getComponent(MultiBlockComponent.class);
+                EntityRef mainBlockEntity = multiBlock.getMainBlockEntity();
+                MultiBlockMainComponent mainComponent = mainBlockEntity.getComponent(MultiBlockMainComponent.class);
+                if (mainComponent.getMultiBlockType().equals(type)) {
+                    if (mainBlockEntity.getComponent(BlockComponent.class).getPosition().equals(location)
+                            || mainComponent.getMultiBlockMembers().contains(location)) {
+                        return entity;
+                    }
+                }
+                return null;
+            }
+        }
+        return null;
+    }
+
     @ReceiveEvent
     public void onMultiBlockCandidatePlaced(OnAddedComponent event, EntityRef entity, MultiBlockCandidateComponent candidate, BlockComponent block) {
         for (String type : candidate.getType()) {
@@ -176,7 +196,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         }
     }
 
-//    @ReceiveEvent
+    //    @ReceiveEvent
 //    public void afterChunkLoaded(OnChunkLoaded chunkLoaded, EntityRef world) {
 //        Region3i chunkRegion = getChunkRegion(chunkLoaded.getChunkPos());
 //        for (Vector3i vector3i : chunkRegion) {
