@@ -34,6 +34,11 @@ public class InvisibleInMultiBlockStructureBlockFamily extends AbstractBlockFami
         super(uri, categories);
         this.visibleBlock = visibleBlock;
         this.invisibleBlock = invisibleBlock;
+
+        visibleBlock.setUri(new BlockUri(uri, "visible"));
+        visibleBlock.setBlockFamily(this);
+        invisibleBlock.setUri(new BlockUri(uri, "invisible"));
+        invisibleBlock.setBlockFamily(this);
     }
 
     @Override
