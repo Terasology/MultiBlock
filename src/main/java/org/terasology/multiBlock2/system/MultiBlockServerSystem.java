@@ -36,6 +36,7 @@ import org.terasology.math.geom.Vector3i;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 import org.terasology.multiBlock2.MultiBlockRegistry;
 import org.terasology.multiBlock2.block.InvisibleInMultiBlockStructureBlockFamily;
+import org.terasology.multiBlock2.block.VisibilityEnabledBlockFamily;
 import org.terasology.multiBlock2.component.MultiBlockCandidateComponent;
 import org.terasology.multiBlock2.component.MultiBlockComponent;
 import org.terasology.multiBlock2.component.MultiBlockMainComponent;
@@ -355,18 +356,19 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
 
         loadedMultiBlocks.put(aabb, multiBlockEntity);
 
-        multiBlockEntity.send(new MultiBlockFormed(multiBlockType, definition));
+        multiBlockEntity.send(new MultiBlockFormed<>(multiBlockType, definition));
     }
 
     private void setBlockVisibilityIfNeeded(Vector3i location, boolean visible) {
-        BlockFamily blockFamily = worldProvider.getBlock(location).getBlockFamily();
-        if (blockFamily instanceof InvisibleInMultiBlockStructureBlockFamily) {
+        Block currentBlock = worldProvider.getBlock(location);
+        BlockFamily blockFamily = currentBlock.getBlockFamily();
+        if (blockFamily instanceof VisibilityEnabledBlockFamily) {
             Block blockToUse;
-            InvisibleInMultiBlockStructureBlockFamily blockFamilyCast = (InvisibleInMultiBlockStructureBlockFamily) blockFamily;
+            VisibilityEnabledBlockFamily blockFamilyCast = (VisibilityEnabledBlockFamily) blockFamily;
             if (visible) {
-                blockToUse = blockFamilyCast.getVisibleBlock();
+                blockToUse = blockFamilyCast.getVisibleBlock(currentBlock);
             } else {
-                blockToUse = blockFamilyCast.getInvisibleBlock();
+                blockToUse = blockFamilyCast.getInvisibleBlock(currentBlock);
             }
             worldProvider.setBlock(location, blockToUse);
         }
@@ -392,8 +394,9 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
     }
 
     private boolean areAllMultiBlocksInTheWayRelevant(Set<EntityRef> multiBlockMainBlockEntities) {
-        if (multiBlockMainBlockEntities == null)
+        if (multiBlockMainBlockEntities == null) {
             return false;
+        }
         for (EntityRef multiBlockMainBlockEntity : multiBlockMainBlockEntities) {
             if (!worldProvider.isRegionRelevant(multiBlockMainBlockEntity.getComponent(MultiBlockMainComponent.class).getAabb())) {
                 return false;

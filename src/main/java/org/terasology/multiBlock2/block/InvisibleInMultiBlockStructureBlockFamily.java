@@ -25,7 +25,7 @@ import org.terasology.world.block.family.AbstractBlockFamily;
 
 import java.util.Arrays;
 
-public class InvisibleInMultiBlockStructureBlockFamily extends AbstractBlockFamily {
+public class InvisibleInMultiBlockStructureBlockFamily extends AbstractBlockFamily implements VisibilityEnabledBlockFamily {
     private Block visibleBlock;
     private Block invisibleBlock;
 
@@ -53,15 +53,21 @@ public class InvisibleInMultiBlockStructureBlockFamily extends AbstractBlockFami
 
     @Override
     public Block getBlockFor(BlockUri blockUri) {
-        return visibleBlock;
+        if (blockUri.getIdentifier().toLowerCase().equals("visible")) {
+            return visibleBlock;
+        } else {
+            return invisibleBlock;
+        }
     }
 
-    public Block getVisibleBlock() {
-        return visibleBlock;
-    }
-
-    public Block getInvisibleBlock() {
+    @Override
+    public Block getInvisibleBlock(Block currentBlock) {
         return invisibleBlock;
+    }
+
+    @Override
+    public Block getVisibleBlock(Block currentBlock) {
+        return visibleBlock;
     }
 
     @Override

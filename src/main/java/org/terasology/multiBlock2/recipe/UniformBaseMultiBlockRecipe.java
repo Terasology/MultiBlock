@@ -22,14 +22,19 @@ import org.terasology.math.geom.Vector3i;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 import org.terasology.world.BlockEntityRegistry;
 
-public abstract class UniformMultiBlockRecipe<T extends MultiBlockDefinition> implements MultiBlockRecipe<T> {
+import java.util.function.BiPredicate;
+
+public abstract class UniformBaseMultiBlockRecipe<T extends MultiBlockDefinition> implements MultiBlockRecipe<T> {
     private BlockEntityRegistry blockEntityRegistry;
-    private Predicate<EntityRef> blockFilter;
+    private Predicate<EntityRef> baseEntityPredicate;
+    private BiPredicate<EntityRef, EntityRef> otherEntitiesPredicate;
     private Predicate<Vector3i> sizeFilter;
 
-    protected UniformMultiBlockRecipe(BlockEntityRegistry blockEntityRegistry, Predicate<EntityRef> blockFilter, Predicate<Vector3i> sizeFilter) {
+    protected UniformBaseMultiBlockRecipe(BlockEntityRegistry blockEntityRegistry, Predicate<EntityRef> baseEntityPredicate,
+                                          BiPredicate<EntityRef, EntityRef> otherEntitiesPredicate, Predicate<Vector3i> sizeFilter) {
         this.blockEntityRegistry = blockEntityRegistry;
-        this.blockFilter = blockFilter;
+        this.baseEntityPredicate = baseEntityPredicate;
+        this.otherEntitiesPredicate = otherEntitiesPredicate;
         this.sizeFilter = sizeFilter;
     }
 
@@ -37,16 +42,16 @@ public abstract class UniformMultiBlockRecipe<T extends MultiBlockDefinition> im
     public T detectFormingMultiBlock(Vector3i location) {
         EntityRef target = blockEntityRegistry.getBlockEntityAt(location);
 
-        if (!blockFilter.apply(target)) {
+        if (!baseEntityPredicate.apply(target)) {
             return null;
         }
 
-        int minX = getLastMatchingInDirection(location, Vector3i.east()).x;
-        int maxX = getLastMatchingInDirection(location, Vector3i.west()).x;
-        int minY = getLastMatchingInDirection(location, Vector3i.down()).y;
-        int maxY = getLastMatchingInDirection(location, Vector3i.up()).y;
-        int minZ = getLastMatchingInDirection(location, Vector3i.south()).z;
-        int maxZ = getLastMatchingInDirection(location, Vector3i.north()).z;
+        int minX = getLastMatchingInDirection(target, location, Vector3i.east()).x;
+        int maxX = getLastMatchingInDirection(target, location, Vector3i.west()).x;
+        int minY = getLastMatchingInDirection(target, location, Vector3i.down()).y;
+        int maxY = getLastMatchingInDirection(target, location, Vector3i.up()).y;
+        int minZ = getLastMatchingInDirection(target, location, Vector3i.south()).z;
+        int maxZ = getLastMatchingInDirection(target, location, Vector3i.north()).z;
 
         Region3i multiBlockRegion = Region3i.createBounded(new Vector3i(minX, minY, minZ), new Vector3i(maxX, maxY, maxZ));
 
@@ -57,7 +62,7 @@ public abstract class UniformMultiBlockRecipe<T extends MultiBlockDefinition> im
 
         // Now check that all the blocks in the region defined by these boundaries match the criteria
         for (Vector3i blockLocation : multiBlockRegion) {
-            if (!blockFilter.apply(blockEntityRegistry.getBlockEntityAt(blockLocation))) {
+            if (!baseEntityPredicate.apply(blockEntityRegistry.getBlockEntityAt(blockLocation))) {
                 return null;
             }
         }
@@ -67,12 +72,12 @@ public abstract class UniformMultiBlockRecipe<T extends MultiBlockDefinition> im
 
     protected abstract T createMultiBlockDefinition(Region3i multiBlockRegion);
 
-    private Vector3i getLastMatchingInDirection(Vector3i location, Vector3i direction) {
+    private Vector3i getLastMatchingInDirection(EntityRef targetEntity, Vector3i location, Vector3i direction) {
         Vector3i result = location;
         while (true) {
             Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y, result.z + direction.z);
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
-            if (!blockFilter.apply(blockEntityAt)) {
+            if (!otherEntitiesPredicate.test(targetEntity, blockEntityAt)) {
                 return result;
             }
             result = testedLocation;
