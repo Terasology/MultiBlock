@@ -106,7 +106,6 @@ public class InvisibleInMultiBlockStructureSidedBlockFamily extends AbstractBloc
         return blockMap.values();
     }
 
-    @Override
     public Side getSide(Block block) {
         for (Map.Entry<Side, Block> sideBlockEntry : visibleBlocks.entrySet()) {
             if (block == sideBlockEntry.getValue()) {
