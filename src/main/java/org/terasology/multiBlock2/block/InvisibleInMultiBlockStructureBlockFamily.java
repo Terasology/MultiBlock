@@ -17,6 +17,7 @@ package org.terasology.multiBlock2.block;
 
 import org.terasology.math.Side;
 import org.terasology.math.geom.Vector3i;
+import org.terasology.naming.Name;
 import org.terasology.world.BlockEntityRegistry;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.block.Block;
@@ -26,6 +27,8 @@ import org.terasology.world.block.family.AbstractBlockFamily;
 import java.util.Arrays;
 
 public class InvisibleInMultiBlockStructureBlockFamily extends AbstractBlockFamily implements VisibilityEnabledBlockFamily {
+    private static final Name VISIBLE_NAME = new Name("visible");
+    private static final Name INVISIBLE_NAME = new Name("invisible");
     private Block visibleBlock;
     private Block invisibleBlock;
 
@@ -35,9 +38,9 @@ public class InvisibleInMultiBlockStructureBlockFamily extends AbstractBlockFami
         this.visibleBlock = visibleBlock;
         this.invisibleBlock = invisibleBlock;
 
-        visibleBlock.setUri(new BlockUri(uri, "visible"));
+        visibleBlock.setUri(new BlockUri(uri, VISIBLE_NAME));
         visibleBlock.setBlockFamily(this);
-        invisibleBlock.setUri(new BlockUri(uri, "invisible"));
+        invisibleBlock.setUri(new BlockUri(uri, INVISIBLE_NAME));
         invisibleBlock.setBlockFamily(this);
     }
 
@@ -53,7 +56,7 @@ public class InvisibleInMultiBlockStructureBlockFamily extends AbstractBlockFami
 
     @Override
     public Block getBlockFor(BlockUri blockUri) {
-        if (blockUri.getIdentifier().toLowerCase().equals("visible")) {
+        if (blockUri.getIdentifier().equals(VISIBLE_NAME)) {
             return visibleBlock;
         } else {
             return invisibleBlock;

@@ -15,9 +15,9 @@
  */
 package org.terasology.multiBlock2.block;
 
-import com.google.common.collect.Iterables;
 import org.terasology.math.Side;
 import org.terasology.math.geom.Vector3i;
+import org.terasology.naming.Name;
 import org.terasology.world.BlockEntityRegistry;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.block.Block;
@@ -25,11 +25,8 @@ import org.terasology.world.block.BlockUri;
 import org.terasology.world.block.family.AbstractBlockFamily;
 import org.terasology.world.block.family.SideDefinedBlockFamily;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class InvisibleInMultiBlockStructureSidedBlockFamily extends AbstractBlockFamily implements VisibilityEnabledBlockFamily, SideDefinedBlockFamily {
     private Map<Side, Block> visibleBlocks;
@@ -48,7 +45,7 @@ public class InvisibleInMultiBlockStructureSidedBlockFamily extends AbstractBloc
         for (Map.Entry<Side, Block> visibleBlockEntry : visibleBlocks.entrySet()) {
             Side side = visibleBlockEntry.getKey();
             Block block = visibleBlockEntry.getValue();
-            BlockUri blockUri = new BlockUri(uri, "visible." + side.name());
+            BlockUri blockUri = new BlockUri(uri, new Name("visible." + side.name()));
             block.setUri(blockUri);
             block.setBlockFamily(this);
             blockMap.put(blockUri, block);
@@ -57,7 +54,7 @@ public class InvisibleInMultiBlockStructureSidedBlockFamily extends AbstractBloc
         for (Map.Entry<Side, Block> invisibleBlockEntry : invisibleBlocks.entrySet()) {
             Side side = invisibleBlockEntry.getKey();
             Block block = invisibleBlockEntry.getValue();
-            BlockUri blockUri = new BlockUri(uri, "invisible." + side.name());
+            BlockUri blockUri = new BlockUri(uri, new Name("invisible." + side.name()));
             block.setUri(blockUri);
             block.setBlockFamily(this);
             blockMap.put(blockUri, block);
@@ -106,8 +103,8 @@ public class InvisibleInMultiBlockStructureSidedBlockFamily extends AbstractBloc
         return blockMap.values();
     }
 
-    @Override
-    public Side getSide(Block block) {
+    private Side getSide(Block block) {
+        // TODO check if return block.getDirection(); is sufficient.
         for (Map.Entry<Side, Block> sideBlockEntry : visibleBlocks.entrySet()) {
             if (block == sideBlockEntry.getValue()) {
                 return sideBlockEntry.getKey();
@@ -120,4 +117,6 @@ public class InvisibleInMultiBlockStructureSidedBlockFamily extends AbstractBloc
         }
         return null;
     }
+
+
 }

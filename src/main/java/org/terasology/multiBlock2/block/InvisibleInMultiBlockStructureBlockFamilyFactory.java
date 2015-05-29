@@ -15,67 +15,40 @@
  */
 package org.terasology.multiBlock2.block;
 
-import com.google.gson.JsonObject;
-import org.terasology.asset.AssetUri;
+import org.terasology.assets.management.AssetManager;
+import org.terasology.math.Rotation;
+import org.terasology.registry.CoreRegistry;
 import org.terasology.world.block.Block;
+import org.terasology.world.block.BlockBuilderHelper;
 import org.terasology.world.block.BlockUri;
-import org.terasology.world.block.family.BlockBuilderHelper;
 import org.terasology.world.block.family.BlockFamily;
 import org.terasology.world.block.family.BlockFamilyFactory;
 import org.terasology.world.block.family.RegisterBlockFamilyFactory;
-import org.terasology.world.block.loader.BlockDefinition;
+import org.terasology.world.block.loader.BlockFamilyDefinition;
+import org.terasology.world.block.loader.SectionDefinitionData;
+import org.terasology.world.block.shapes.BlockShape;
 
 @RegisterBlockFamilyFactory("invisibleInMultiBlock")
 public class InvisibleInMultiBlockStructureBlockFamilyFactory implements BlockFamilyFactory {
+
+    private AssetManager assetManager = CoreRegistry.get(AssetManager.class);
+
     @Override
-    public BlockFamily createBlockFamily(BlockBuilderHelper blockBuilder, AssetUri blockDefUri, BlockDefinition blockDefinition, JsonObject blockDefJson) {
-        final Block visibleBlock = blockBuilder.constructSimpleBlock(blockDefUri, blockDefinition);
-
-        BlockDefinition invisibleBlockDefinition = new BlockDefinition();
-        invisibleBlockDefinition.attachmentAllowed = blockDefinition.attachmentAllowed;
-        invisibleBlockDefinition.categories = blockDefinition.categories;
-        invisibleBlockDefinition.climbable = blockDefinition.climbable;
-        invisibleBlockDefinition.colorOffset = blockDefinition.colorOffset;
-        invisibleBlockDefinition.colorOffsets =blockDefinition.colorOffsets;
-        invisibleBlockDefinition.colorSource = blockDefinition.colorSource;
-        invisibleBlockDefinition.colorSources = blockDefinition.colorSources;
-        invisibleBlockDefinition.debrisOnDestroy = blockDefinition.debrisOnDestroy;
-        invisibleBlockDefinition.displayName = blockDefinition.displayName;
-        invisibleBlockDefinition.doubleSided = blockDefinition.doubleSided;
-        invisibleBlockDefinition.entity = blockDefinition.entity;
-        invisibleBlockDefinition.grass = blockDefinition.grass;
-        invisibleBlockDefinition.hardness = blockDefinition.hardness;
-        invisibleBlockDefinition.ice = blockDefinition.ice;
-        invisibleBlockDefinition.inventory = blockDefinition.inventory;
-        invisibleBlockDefinition.invisible = true;
-        invisibleBlockDefinition.lava = blockDefinition.lava;
-        invisibleBlockDefinition.liquid = blockDefinition.liquid;
-        invisibleBlockDefinition.luminance = blockDefinition.luminance;
-        invisibleBlockDefinition.mass = blockDefinition.mass;
-        invisibleBlockDefinition.penetrable = blockDefinition.penetrable;
-        invisibleBlockDefinition.replacementAllowed = blockDefinition.replacementAllowed;
-        invisibleBlockDefinition.inventory = blockDefinition.inventory;
-        invisibleBlockDefinition.shadowCasting = blockDefinition.shadowCasting;
-        invisibleBlockDefinition.shape = blockDefinition.shape;
-        invisibleBlockDefinition.shapes = blockDefinition.shapes;
-        invisibleBlockDefinition.sounds = blockDefinition.sounds;
-        invisibleBlockDefinition.supportRequired = blockDefinition.supportRequired;
-        invisibleBlockDefinition.targetable = blockDefinition.targetable;
-        invisibleBlockDefinition.rotation = blockDefinition.rotation;
-        invisibleBlockDefinition.tint = blockDefinition.tint;
-        invisibleBlockDefinition.translucent = true;
-        invisibleBlockDefinition.water = blockDefinition.water;
-        invisibleBlockDefinition.waving = blockDefinition.waving;
-
-
-
-        invisibleBlockDefinition.tile = "MultiBlock:InvisibleBlock";
-        invisibleBlockDefinition.tiles = null;
-
-        Block invisibleBlock = blockBuilder.constructSimpleBlock(blockDefUri, invisibleBlockDefinition);
-
-        BlockUri familyUri = new BlockUri(blockDefUri.getModuleName(), blockDefUri.getAssetName());
-
-        return new InvisibleInMultiBlockStructureBlockFamily(familyUri, blockDefinition.categories, visibleBlock, invisibleBlock);
+    public BlockFamily createBlockFamily(BlockFamilyDefinition family, BlockBuilderHelper blockBuilder) {
+        final Block visibleBlock = blockBuilder.constructSimpleBlock(family);
+        final Block invisibleBlock = createInvisibleBlock(family, blockBuilder);
+        BlockUri familyUri = new BlockUri(family.getUrn());
+        return new InvisibleInMultiBlockStructureBlockFamily(familyUri, family.getCategories(), visibleBlock, invisibleBlock);
     }
+
+    private Block createInvisibleBlock(BlockFamilyDefinition family, BlockBuilderHelper blockBuilder) {
+        SectionDefinitionData invisibleSectionDefData =InvisibleBlockUtil.createInvisibleBlockSectionData(family,
+                assetManager);
+        String invisibleBlockName = family.getUrn().getResourceName().toString();
+        BlockShape shape = invisibleSectionDefData.getShape();
+        Rotation rotation = Rotation.none();
+        return blockBuilder.constructCustomBlock(invisibleBlockName, shape, rotation, invisibleSectionDefData);
+    }
+
+
 }
