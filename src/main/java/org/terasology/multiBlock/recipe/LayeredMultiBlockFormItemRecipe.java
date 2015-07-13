@@ -172,14 +172,16 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         if (callback != null) {
             Map<Vector3i, Block> replacementMap = callback.getReplacementMap(multiBlockRegion, layerHeights);
 
-            // Ok, now we can replace the blocks
-            WorldProvider worldProvider = CoreRegistry.get(WorldProvider.class);
-            EntityRef worldEntity = worldProvider.getWorldEntity();
-            PlaceBlocks placeBlocksEvent = new PlaceBlocks(replacementMap, event.getInstigator());
-            worldEntity.send(placeBlocksEvent);
+            if (replacementMap != null) {
+                // Ok, now we can replace the blocks
+                WorldProvider worldProvider = CoreRegistry.get(WorldProvider.class);
+                EntityRef worldEntity = worldProvider.getWorldEntity();
+                PlaceBlocks placeBlocksEvent = new PlaceBlocks(replacementMap, event.getInstigator());
+                worldEntity.send(placeBlocksEvent);
 
-            if (placeBlocksEvent.isConsumed()) {
-                return false;
+                if (placeBlocksEvent.isConsumed()) {
+                    return false;
+                }
             }
         }
 

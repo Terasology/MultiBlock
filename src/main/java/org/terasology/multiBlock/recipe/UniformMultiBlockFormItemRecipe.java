@@ -106,12 +106,14 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
 
         Map<Vector3i, Block> replacementMap = callback.getReplacementMap(multiBlockRegion, null);
 
-        // First, replace the blocks in world
-        PlaceBlocks placeBlocksEvent = new PlaceBlocks(replacementMap, event.getInstigator());
-        worldProvider.getWorldEntity().send(placeBlocksEvent);
+        if (replacementMap != null) {
+            // First, replace the blocks in world
+            PlaceBlocks placeBlocksEvent = new PlaceBlocks(replacementMap, event.getInstigator());
+            worldProvider.getWorldEntity().send(placeBlocksEvent);
 
-        if (placeBlocksEvent.isConsumed()) {
-            return false;
+            if (placeBlocksEvent.isConsumed()) {
+                return false;
+            }
         }
 
         // Create the block region entity

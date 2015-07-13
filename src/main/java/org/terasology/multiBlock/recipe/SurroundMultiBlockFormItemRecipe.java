@@ -117,14 +117,16 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
         // Ok, we got matching blocks now we can form the multi-block
         Map<Vector3i, Block> replacementBlockMap = callback.getReplacementMap(outsideBlockRegion, null);
 
-        WorldProvider worldProvider = CoreRegistry.get(WorldProvider.class);
+        if (replacementBlockMap != null) {
+            WorldProvider worldProvider = CoreRegistry.get(WorldProvider.class);
 
-        // First, replace the blocks in world
-        PlaceBlocks placeBlocksEvent = new PlaceBlocks(replacementBlockMap, event.getInstigator());
-        worldProvider.getWorldEntity().send(placeBlocksEvent);
+            // First, replace the blocks in world
+            PlaceBlocks placeBlocksEvent = new PlaceBlocks(replacementBlockMap, event.getInstigator());
+            worldProvider.getWorldEntity().send(placeBlocksEvent);
 
-        if (placeBlocksEvent.isConsumed()) {
-            return false;
+            if (placeBlocksEvent.isConsumed()) {
+                return false;
+            }
         }
 
         // Create the block region entity
