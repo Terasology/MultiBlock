@@ -18,7 +18,7 @@ package org.terasology.multiBlock2.recipe;
 import com.google.common.base.Predicate;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.math.Region3i;
-import org.terasology.math.Vector2i;
+import org.terasology.math.geom.Vector2i;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 import org.terasology.registry.CoreRegistry;
