@@ -15,37 +15,56 @@
  */
 package org.terasology.multiBlock2.block;
 
+import com.google.common.collect.Maps;
+import org.terasology.assets.management.AssetManager;
+import org.terasology.math.Rotation;
 import org.terasology.math.Side;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.naming.Name;
-import org.terasology.world.BlockEntityRegistry;
-import org.terasology.world.WorldProvider;
+import org.terasology.registry.In;
 import org.terasology.world.block.Block;
+import org.terasology.world.block.BlockBuilderHelper;
 import org.terasology.world.block.BlockUri;
 import org.terasology.world.block.family.AbstractBlockFamily;
+import org.terasology.world.block.family.RegisterBlockFamily;
 import org.terasology.world.block.family.SideDefinedBlockFamily;
+import org.terasology.world.block.loader.BlockFamilyDefinition;
+import org.terasology.world.block.loader.SectionDefinitionData;
+import org.terasology.world.block.shapes.BlockShape;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@RegisterBlockFamily("invisibleInMultiBlockHorizontal")
 public class InvisibleInMultiBlockStructureSidedBlockFamily extends AbstractBlockFamily implements VisibilityEnabledBlockFamily, SideDefinedBlockFamily {
+    @In
+    private AssetManager assetManager;
+
     private Map<Side, Block> visibleBlocks;
     private Map<Side, Block> invisibleBlocks;
     private Side archetypeSide;
 
     private Map<BlockUri, Block> blockMap = new HashMap<>();
 
-    public InvisibleInMultiBlockStructureSidedBlockFamily(BlockUri uri, Iterable<String> categories, Side archetypeSide,
-                                                          Map<Side, Block> visibleBlocks, Map<Side, Block> invisibleBlocks) {
-        super(uri, categories);
-        this.archetypeSide = archetypeSide;
-        this.visibleBlocks = visibleBlocks;
-        this.invisibleBlocks = invisibleBlocks;
+    public InvisibleInMultiBlockStructureSidedBlockFamily(BlockFamilyDefinition family, BlockBuilderHelper blockBuilder) {
+        super(family, blockBuilder);
+        SectionDefinitionData visibleBlockData = family.getData().getBaseSection();
+        visibleBlocks = constructHorizontalBlocks(family, visibleBlockData,
+                blockBuilder);
+
+        SectionDefinitionData invisibleBlockData = InvisibleBlockUtil.createInvisibleBlockSectionData(family,
+                assetManager);
+        invisibleBlocks = constructHorizontalBlocks(family, invisibleBlockData,
+                blockBuilder);
+
+        BlockUri familyUri = new BlockUri(family.getUrn());
+
+        archetypeSide = Side.FRONT;
 
         for (Map.Entry<Side, Block> visibleBlockEntry : visibleBlocks.entrySet()) {
             Side side = visibleBlockEntry.getKey();
             Block block = visibleBlockEntry.getValue();
-            BlockUri blockUri = new BlockUri(uri, new Name("visible." + side.name()));
+            BlockUri blockUri = new BlockUri(familyUri, new Name("visible." + side.name()));
             block.setUri(blockUri);
             block.setBlockFamily(this);
             blockMap.put(blockUri, block);
@@ -54,15 +73,26 @@ public class InvisibleInMultiBlockStructureSidedBlockFamily extends AbstractBloc
         for (Map.Entry<Side, Block> invisibleBlockEntry : invisibleBlocks.entrySet()) {
             Side side = invisibleBlockEntry.getKey();
             Block block = invisibleBlockEntry.getValue();
-            BlockUri blockUri = new BlockUri(uri, new Name("invisible." + side.name()));
+            BlockUri blockUri = new BlockUri(familyUri, new Name("invisible." + side.name()));
             block.setUri(blockUri);
             block.setBlockFamily(this);
             blockMap.put(blockUri, block);
         }
     }
 
+    private Map<Side, Block> constructHorizontalBlocks(BlockFamilyDefinition family, SectionDefinitionData sectionDefData, BlockBuilderHelper blockBuilder) {
+        Map<Side, Block> blocks = Maps.newHashMap();
+
+        String name = family.getUrn().getResourceName().toString();
+        BlockShape shape = sectionDefData.getShape();
+        for (Rotation rot : Rotation.horizontalRotations()) {
+            blocks.put(rot.rotate(Side.FRONT), blockBuilder.constructCustomBlock(name, shape, rot, sectionDefData));
+        }
+        return blocks;
+    }
+
     @Override
-    public Block getBlockForPlacement(WorldProvider worldProvider, BlockEntityRegistry blockEntityRegistry, Vector3i location, Side attachmentSide, Side direction) {
+    public Block getBlockForPlacement(Vector3i location, Side attachmentSide, Side direction) {
         if (attachmentSide.isHorizontal()) {
             return visibleBlocks.get(attachmentSide);
         }
