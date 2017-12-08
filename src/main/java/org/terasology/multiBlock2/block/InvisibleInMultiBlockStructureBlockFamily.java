@@ -34,11 +34,12 @@ import java.util.Arrays;
 
 @RegisterBlockFamily("invisibleInMultiBlock")
 public class InvisibleInMultiBlockStructureBlockFamily extends AbstractBlockFamily implements VisibilityEnabledBlockFamily {
+    private static final Name VISIBLE_NAME = new Name("visible");
+    private static final Name INVISIBLE_NAME = new Name("invisible");
+
     @In
     private AssetManager assetManager;
 
-    private static final Name VISIBLE_NAME = new Name("visible");
-    private static final Name INVISIBLE_NAME = new Name("invisible");
     private Block visibleBlock;
     private Block invisibleBlock;
 
@@ -55,7 +56,7 @@ public class InvisibleInMultiBlockStructureBlockFamily extends AbstractBlockFami
     }
 
     private Block createInvisibleBlock(BlockFamilyDefinition family, BlockBuilderHelper blockBuilder) {
-        SectionDefinitionData invisibleSectionDefData =InvisibleBlockUtil.createInvisibleBlockSectionData(family,
+        SectionDefinitionData invisibleSectionDefData = InvisibleBlockUtil.createInvisibleBlockSectionData(family,
                 assetManager);
         String invisibleBlockName = family.getUrn().getResourceName().toString();
         BlockShape shape = invisibleSectionDefData.getShape();
