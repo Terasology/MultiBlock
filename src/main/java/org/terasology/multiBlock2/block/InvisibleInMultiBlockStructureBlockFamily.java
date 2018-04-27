@@ -15,37 +15,57 @@
  */
 package org.terasology.multiBlock2.block;
 
+import org.terasology.assets.management.AssetManager;
+import org.terasology.math.Rotation;
 import org.terasology.math.Side;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.naming.Name;
-import org.terasology.world.BlockEntityRegistry;
-import org.terasology.world.WorldProvider;
+import org.terasology.registry.In;
 import org.terasology.world.block.Block;
+import org.terasology.world.block.BlockBuilderHelper;
 import org.terasology.world.block.BlockUri;
 import org.terasology.world.block.family.AbstractBlockFamily;
+import org.terasology.world.block.family.RegisterBlockFamily;
+import org.terasology.world.block.loader.BlockFamilyDefinition;
+import org.terasology.world.block.loader.SectionDefinitionData;
+import org.terasology.world.block.shapes.BlockShape;
 
 import java.util.Arrays;
 
+@RegisterBlockFamily("invisibleInMultiBlock")
 public class InvisibleInMultiBlockStructureBlockFamily extends AbstractBlockFamily implements VisibilityEnabledBlockFamily {
     private static final Name VISIBLE_NAME = new Name("visible");
     private static final Name INVISIBLE_NAME = new Name("invisible");
+
+    @In
+    private AssetManager assetManager;
+
     private Block visibleBlock;
     private Block invisibleBlock;
 
-    public InvisibleInMultiBlockStructureBlockFamily(BlockUri uri, Iterable<String> categories,
-                                                     Block visibleBlock, Block invisibleBlock) {
-        super(uri, categories);
-        this.visibleBlock = visibleBlock;
-        this.invisibleBlock = invisibleBlock;
+    public InvisibleInMultiBlockStructureBlockFamily(BlockFamilyDefinition family, BlockBuilderHelper blockBuilder) {
+        super(family, blockBuilder);
+        visibleBlock = blockBuilder.constructSimpleBlock(family);
+        invisibleBlock = createInvisibleBlock(family, blockBuilder);
+        BlockUri familyUri = new BlockUri(family.getUrn());
 
-        visibleBlock.setUri(new BlockUri(uri, VISIBLE_NAME));
+        visibleBlock.setUri(new BlockUri(familyUri, VISIBLE_NAME));
         visibleBlock.setBlockFamily(this);
-        invisibleBlock.setUri(new BlockUri(uri, INVISIBLE_NAME));
+        invisibleBlock.setUri(new BlockUri(familyUri, INVISIBLE_NAME));
         invisibleBlock.setBlockFamily(this);
     }
 
+    private Block createInvisibleBlock(BlockFamilyDefinition family, BlockBuilderHelper blockBuilder) {
+        SectionDefinitionData invisibleSectionDefData = InvisibleBlockUtil.createInvisibleBlockSectionData(family,
+                assetManager);
+        String invisibleBlockName = family.getUrn().getResourceName().toString();
+        BlockShape shape = invisibleSectionDefData.getShape();
+        Rotation rotation = Rotation.none();
+        return blockBuilder.constructCustomBlock(invisibleBlockName, shape, rotation, invisibleSectionDefData);
+    }
+
     @Override
-    public Block getBlockForPlacement(WorldProvider worldProvider, BlockEntityRegistry blockEntityRegistry, Vector3i location, Side attachmentSide, Side direction) {
+    public Block getBlockForPlacement(Vector3i location, Side attachmentSide, Side direction) {
         return visibleBlock;
     }
 
