@@ -45,23 +45,23 @@ public class InvisibleInMultiBlockStructureBlockFamily extends AbstractBlockFami
 
     public InvisibleInMultiBlockStructureBlockFamily(BlockFamilyDefinition family, BlockBuilderHelper blockBuilder) {
         super(family, blockBuilder);
-        visibleBlock = blockBuilder.constructSimpleBlock(family);
-        invisibleBlock = createInvisibleBlock(family, blockBuilder);
         BlockUri familyUri = new BlockUri(family.getUrn());
+        BlockUri visibleUri = new BlockUri(familyUri, VISIBLE_NAME);
+        BlockUri invisibleUri = new BlockUri(familyUri, INVISIBLE_NAME);
 
-        visibleBlock.setUri(new BlockUri(familyUri, VISIBLE_NAME));
-        visibleBlock.setBlockFamily(this);
-        invisibleBlock.setUri(new BlockUri(familyUri, INVISIBLE_NAME));
-        invisibleBlock.setBlockFamily(this);
+        visibleBlock = blockBuilder.constructSimpleBlock(family, visibleUri, this);
+        invisibleBlock = createInvisibleBlock(family, blockBuilder, invisibleUri);
+
+        visibleBlock.setUri(visibleUri);
+        invisibleBlock.setUri(invisibleUri);
     }
 
-    private Block createInvisibleBlock(BlockFamilyDefinition family, BlockBuilderHelper blockBuilder) {
-        SectionDefinitionData invisibleSectionDefData = InvisibleBlockUtil.createInvisibleBlockSectionData(family,
-                assetManager);
+    private Block createInvisibleBlock(BlockFamilyDefinition family, BlockBuilderHelper blockBuilder, BlockUri uri) {
+        SectionDefinitionData invisibleSectionDefData = InvisibleBlockUtil.createInvisibleBlockSectionData(family, assetManager);
         String invisibleBlockName = family.getUrn().getResourceName().toString();
         BlockShape shape = invisibleSectionDefData.getShape();
         Rotation rotation = Rotation.none();
-        return blockBuilder.constructCustomBlock(invisibleBlockName, shape, rotation, invisibleSectionDefData);
+        return blockBuilder.constructCustomBlock(invisibleBlockName, shape, rotation, invisibleSectionDefData, uri, this);
     }
 
     @Override

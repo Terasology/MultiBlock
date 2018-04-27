@@ -86,7 +86,8 @@ public class InvisibleInMultiBlockStructureSidedBlockFamily extends AbstractBloc
         String name = family.getUrn().getResourceName().toString();
         BlockShape shape = sectionDefData.getShape();
         for (Rotation rot : Rotation.horizontalRotations()) {
-            blocks.put(rot.rotate(Side.FRONT), blockBuilder.constructCustomBlock(name, shape, rot, sectionDefData));
+            BlockUri blockUri = new BlockUri(family.getUrn(), new Name(rot.getYaw().ordinal() + "." + rot.getPitch().ordinal() + "." + rot.getRoll().ordinal()));
+            blocks.put(rot.rotate(Side.FRONT), blockBuilder.constructCustomBlock(name, shape, rot, sectionDefData, blockUri, this));
         }
         return blocks;
     }
