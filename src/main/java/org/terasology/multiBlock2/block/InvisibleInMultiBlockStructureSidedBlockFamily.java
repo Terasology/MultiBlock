@@ -26,6 +26,7 @@ import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockBuilderHelper;
 import org.terasology.world.block.BlockUri;
 import org.terasology.world.block.family.AbstractBlockFamily;
+import org.terasology.world.block.family.BlockPlacementData;
 import org.terasology.world.block.family.RegisterBlockFamily;
 import org.terasology.world.block.family.SideDefinedBlockFamily;
 import org.terasology.world.block.loader.BlockFamilyDefinition;
@@ -90,6 +91,16 @@ public class InvisibleInMultiBlockStructureSidedBlockFamily extends AbstractBloc
             blocks.put(rot.rotate(Side.FRONT), blockBuilder.constructCustomBlock(name, shape, rot, sectionDefData, blockUri, this));
         }
         return blocks;
+    }
+
+    @Override
+    public Block getBlockForPlacement(BlockPlacementData data) {
+        if (data.attachmentSide.isHorizontal()) {
+            return visibleBlocks.get(data.attachmentSide);
+        } else {
+            Side secondaryDirection = Side.inDirection(-data.viewingDirection.x(), 0, -data.viewingDirection.z());
+            return visibleBlocks.get(secondaryDirection);
+        }
     }
 
     @Override
