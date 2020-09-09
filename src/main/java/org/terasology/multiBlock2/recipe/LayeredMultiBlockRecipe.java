@@ -1,28 +1,15 @@
-/*
- * Copyright 2015 MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 package org.terasology.multiBlock2.recipe;
 
 import com.google.common.base.Predicate;
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.math.Region3i;
+import org.terasology.engine.entitySystem.entity.EntityRef;
+import org.terasology.engine.math.Region3i;
+import org.terasology.engine.registry.CoreRegistry;
+import org.terasology.engine.world.BlockEntityRegistry;
 import org.terasology.math.geom.Vector2i;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.multiBlock2.MultiBlockDefinition;
-import org.terasology.registry.CoreRegistry;
-import org.terasology.world.BlockEntityRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,10 +18,10 @@ import java.util.List;
  * @author Marcin Sciesinski <marcins78@gmail.com>
  */
 public abstract class LayeredMultiBlockRecipe<T extends MultiBlockDefinition> implements MultiBlockRecipe<T> {
-    private BlockEntityRegistry blockEntityRegistry;
-    private Predicate<Vector2i> sizeFilter;
+    private final BlockEntityRegistry blockEntityRegistry;
+    private final Predicate<Vector2i> sizeFilter;
 
-    private List<LayerDefinition> layerDefinitions = new ArrayList<>();
+    private final List<LayerDefinition> layerDefinitions = new ArrayList<>();
 
     public LayeredMultiBlockRecipe(BlockEntityRegistry blockEntityRegistry, Predicate<Vector2i> sizeFilter) {
         this.blockEntityRegistry = blockEntityRegistry;
@@ -122,7 +109,8 @@ public abstract class LayeredMultiBlockRecipe<T extends MultiBlockDefinition> im
             lastLayerYDown -= downLayerHeight;
         }
 
-        // We detected the boundaries of the possible multi-block, now we need to validate that all blocks in the region (for each layer) match
+        // We detected the boundaries of the possible multi-block, now we need to validate that all blocks in the 
+        // region (for each layer) match
         int validationY = lastLayerYDown;
         for (int i = 0; i < layerHeights.length; i++) {
             if (layerHeights[i] > 0) {
@@ -138,17 +126,21 @@ public abstract class LayeredMultiBlockRecipe<T extends MultiBlockDefinition> im
             }
         }
 
-        Region3i multiBlockRegion = Region3i.createBounded(new Vector3i(minX, lastLayerYDown, minZ), new Vector3i(maxX, lastLayerYUp, maxZ));
+        Region3i multiBlockRegion = Region3i.createBounded(new Vector3i(minX, lastLayerYDown, minZ),
+                new Vector3i(maxX, lastLayerYUp, maxZ));
 
         return createMultiBlockDefinition(multiBlockRegion, layerHeights);
     }
 
     protected abstract T createMultiBlockDefinition(Region3i multiBlockRegion, int[] layerHeights);
 
-    private Vector3i getLastMatchingInDirection(BlockEntityRegistry blockEntityRegistry, Predicate<EntityRef> entityFilter, Vector3i location, Vector3i direction) {
+    private Vector3i getLastMatchingInDirection(BlockEntityRegistry blockEntityRegistry,
+                                                Predicate<EntityRef> entityFilter, Vector3i location,
+                                                Vector3i direction) {
         Vector3i result = location;
         while (true) {
-            Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y, result.z + direction.z);
+            Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y,
+                    result.z + direction.z);
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
             if (!entityFilter.apply(blockEntityAt)) {
                 return result;
@@ -158,9 +150,9 @@ public abstract class LayeredMultiBlockRecipe<T extends MultiBlockDefinition> im
     }
 
     private static final class LayerDefinition {
-        private int minHeight;
-        private int maxHeight;
-        private Predicate<EntityRef> entityFilter;
+        private final int minHeight;
+        private final int maxHeight;
+        private final Predicate<EntityRef> entityFilter;
 
         private LayerDefinition(int minHeight, int maxHeight, Predicate<EntityRef> entityFilter) {
             this.minHeight = minHeight;
