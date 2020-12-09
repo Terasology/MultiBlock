@@ -20,6 +20,7 @@ import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.ActivateEvent;
 import org.terasology.logic.location.LocationComponent;
+import org.terasology.math.JomlUtil;
 import org.terasology.math.Region3i;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.multiBlock.MultiBlockCallback;
@@ -119,7 +120,7 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         // Create the block region entity
         EntityManager entityManager = CoreRegistry.get(EntityManager.class);
         EntityRef multiBlockEntity = entityManager.create(prefab);
-        multiBlockEntity.addComponent(new BlockRegionComponent(multiBlockRegion));
+        multiBlockEntity.addComponent(new BlockRegionComponent(JomlUtil.from(multiBlockRegion)));
         multiBlockEntity.addComponent(new LocationComponent(multiBlockRegion.center()));
 
         callback.multiBlockFormed(multiBlockRegion, multiBlockEntity, null);
