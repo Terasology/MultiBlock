@@ -18,7 +18,7 @@ package org.terasology.multiBlock;
 import com.google.common.base.Predicate;
 import org.terasology.math.geom.Vector3i;
 
-public class Basic3DSizeFilter implements Predicate<Vector3i> {
+public class Basic3DSizeFilter implements Predicate<org.joml.Vector3i> {
     private int minHorizontal;
     private int maxHorizontal;
     private int minHeight;
@@ -32,7 +32,7 @@ public class Basic3DSizeFilter implements Predicate<Vector3i> {
     }
 
     @Override
-    public boolean apply(Vector3i value) {
+    public boolean apply(org.joml.Vector3i value) {
         return minHorizontal == Math.min(value.x, value.z)
                 && maxHorizontal == Math.max(value.x, value.z)
                 && minHeight <= value.y && maxHeight >= value.y;

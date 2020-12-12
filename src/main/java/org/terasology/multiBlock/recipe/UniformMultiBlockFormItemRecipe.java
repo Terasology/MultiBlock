@@ -16,6 +16,7 @@
 package org.terasology.multiBlock.recipe;
 
 import com.google.common.base.Predicate;
+import org.joml.Vector3f;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.ActivateEvent;
@@ -30,6 +31,8 @@ import org.terasology.world.BlockEntityRegistry;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockComponent;
+import org.terasology.world.block.BlockRegion;
+import org.terasology.world.block.BlockRegions;
 import org.terasology.world.block.entity.placement.PlaceBlocks;
 import org.terasology.world.block.regions.BlockRegionComponent;
 
@@ -42,12 +45,12 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
     private Predicate<EntityRef> activatorFilter;
     private Predicate<ActivateEvent> activateEventFilter;
     private Predicate<EntityRef> blockFilter;
-    private Predicate<Vector3i> sizeFilter;
+    private Predicate<org.joml.Vector3i> sizeFilter;
     private String prefab;
     private MultiBlockCallback<Void> callback;
 
     public UniformMultiBlockFormItemRecipe(Predicate<EntityRef> activatorFilter, Predicate<ActivateEvent> activateEventFilter,
-                                           Predicate<EntityRef> blockFilter, Predicate<Vector3i> sizeFilter,
+                                           Predicate<EntityRef> blockFilter, Predicate<org.joml.Vector3i> sizeFilter,
                                            String multiBlockPrefab, MultiBlockCallback<Void> callback) {
         this.activatorFilter = activatorFilter;
         this.activateEventFilter = activateEventFilter;
@@ -88,15 +91,16 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         int minZ = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Vector3i.south()).z;
         int maxZ = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Vector3i.north()).z;
 
-        Region3i multiBlockRegion = Region3i.createBounded(new Vector3i(minX, minY, minZ), new Vector3i(maxX, maxY, maxZ));
+        BlockRegion multiBlockRegion = BlockRegions.encompassing(new org.joml.Vector3i(minX, minY, minZ), new org.joml.Vector3i(maxX,
+                maxY, maxZ));
 
         // Check if the size is accepted
-        if (!sizeFilter.apply(multiBlockRegion.size())) {
+        if (!sizeFilter.apply(multiBlockRegion.getSize(new org.joml.Vector3i()))) {
             return false;
         }
 
         // Now check that all the blocks in the region defined by these boundaries match the criteria
-        for (Vector3i blockLocation : multiBlockRegion) {
+        for (org.joml.Vector3ic blockLocation : BlockRegions.iterableInPlace(multiBlockRegion)) {
             if (!blockFilter.apply(blockEntityRegistry.getBlockEntityAt(blockLocation))) {
                 return false;
             }
@@ -105,7 +109,7 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         // Ok, we got matching blocks now we can form the multi-block
         WorldProvider worldProvider = CoreRegistry.get(WorldProvider.class);
 
-        Map<Vector3i, Block> replacementMap = callback.getReplacementMap(multiBlockRegion, null);
+        Map<org.joml.Vector3i, Block> replacementMap = callback.getReplacementMap(multiBlockRegion, null);
 
         if (replacementMap != null) {
             // First, replace the blocks in world
@@ -120,8 +124,8 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         // Create the block region entity
         EntityManager entityManager = CoreRegistry.get(EntityManager.class);
         EntityRef multiBlockEntity = entityManager.create(prefab);
-        multiBlockEntity.addComponent(new BlockRegionComponent(JomlUtil.from(multiBlockRegion)));
-        multiBlockEntity.addComponent(new LocationComponent(multiBlockRegion.center()));
+        multiBlockEntity.addComponent(new BlockRegionComponent(multiBlockRegion));
+        multiBlockEntity.addComponent(new LocationComponent(JomlUtil.from(multiBlockRegion.center(new Vector3f()))));
 
         callback.multiBlockFormed(multiBlockRegion, multiBlockEntity, null);
 

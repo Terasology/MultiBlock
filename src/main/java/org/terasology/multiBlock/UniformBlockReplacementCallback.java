@@ -19,6 +19,9 @@ import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.math.Region3i;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.world.block.Block;
+import org.terasology.world.block.BlockRegion;
+import org.terasology.world.block.BlockRegionIterable;
+import org.terasology.world.block.BlockRegions;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,9 +37,9 @@ public class UniformBlockReplacementCallback<T> implements MultiBlockCallback<T>
     }
 
     @Override
-    public Map<Vector3i, Block> getReplacementMap(Region3i region, T designDetails) {
-        Map<Vector3i, Block> result = new HashMap<>();
-        for (Vector3i location : region) {
+    public Map<org.joml.Vector3i, Block> getReplacementMap(BlockRegion region, T designDetails) {
+        Map<org.joml.Vector3i, Block> result = new HashMap<>();
+        for (org.joml.Vector3i location : BlockRegions.iterable(region)) {
             result.put(location, block);
         }
 
@@ -44,6 +47,6 @@ public class UniformBlockReplacementCallback<T> implements MultiBlockCallback<T>
     }
 
     @Override
-    public void multiBlockFormed(Region3i region, EntityRef entity, T designDetails) {
+    public void multiBlockFormed(BlockRegion region, EntityRef entity, T designDetails) {
     }
 }
