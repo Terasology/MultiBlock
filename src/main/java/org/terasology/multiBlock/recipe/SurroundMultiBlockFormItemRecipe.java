@@ -16,6 +16,7 @@
 package org.terasology.multiBlock.recipe;
 
 import com.google.common.base.Predicate;
+import org.joml.Vector3f;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.ActivateEvent;
@@ -30,6 +31,8 @@ import org.terasology.world.BlockEntityRegistry;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockComponent;
+import org.terasology.world.block.BlockRegion;
+import org.terasology.world.block.BlockRegions;
 import org.terasology.world.block.entity.placement.PlaceBlocks;
 import org.terasology.world.block.regions.BlockRegionComponent;
 
@@ -42,13 +45,13 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
     private Predicate<EntityRef> activator;
     private Predicate<EntityRef> outsideBlock;
     private Predicate<EntityRef> insideBlock;
-    private Predicate<Vector3i> sizeFilter;
+    private Predicate<org.joml.Vector3i> sizeFilter;
     private Predicate<ActivateEvent> activateEventFilter;
     private MultiBlockCallback<Void> callback;
     private String prefab;
 
     public SurroundMultiBlockFormItemRecipe(Predicate<EntityRef> activator, Predicate<EntityRef> outsideBlock, Predicate<EntityRef> insideBlock,
-                                            Predicate<Vector3i> sizeFilter, Predicate<ActivateEvent> activateEventFilter,
+                                            Predicate<org.joml.Vector3i> sizeFilter, Predicate<ActivateEvent> activateEventFilter,
                                             String prefab, MultiBlockCallback<Void> callback) {
         this.activator = activator;
         this.outsideBlock = outsideBlock;
@@ -97,16 +100,16 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
         int maxZ = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(maxX, maxY, minZ), Vector3i.north()).z;
 
         // Now check that all the blocks in the region defined by these boundaries match the criteria
-        Region3i outsideBlockRegion = Region3i.createBounded(new Vector3i(minX, minY, minZ), new Vector3i(maxX, maxY, maxZ));
+        BlockRegion outsideBlockRegion = BlockRegions.encompassing(new org.joml.Vector3i(minX, minY, minZ), new org.joml.Vector3i(maxX, maxY, maxZ));
 
-        if (!sizeFilter.apply(outsideBlockRegion.size())) {
+        if (!sizeFilter.apply(outsideBlockRegion.getSize(new org.joml.Vector3i()))) {
             return false;
         }
 
-        Region3i insideBlockRegion = Region3i.createBounded(new Vector3i(minX + 1, minY + 1, minZ + 1), new Vector3i(maxX - 1, maxY - 1, maxZ - 1));
-        for (Vector3i blockLocation : outsideBlockRegion) {
+        BlockRegion insideBlockRegion = BlockRegions.encompassing(new org.joml.Vector3i(minX + 1, minY + 1, minZ + 1), new org.joml.Vector3i(maxX - 1, maxY - 1, maxZ - 1));
+        for (org.joml.Vector3ic blockLocation : BlockRegions.iterableInPlace(outsideBlockRegion)) {
             EntityRef blockEntity = blockEntityRegistry.getBlockEntityAt(blockLocation);
-            if (insideBlockRegion.encompasses(blockLocation)) {
+            if (insideBlockRegion.containsBlock(blockLocation)) {
                 if (!insideBlock.apply(blockEntity)) {
                     return false;
                 }
@@ -116,7 +119,7 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
         }
 
         // Ok, we got matching blocks now we can form the multi-block
-        Map<Vector3i, Block> replacementBlockMap = callback.getReplacementMap(outsideBlockRegion, null);
+        Map<org.joml.Vector3i, Block> replacementBlockMap = callback.getReplacementMap(outsideBlockRegion, null);
 
         if (replacementBlockMap != null) {
             WorldProvider worldProvider = CoreRegistry.get(WorldProvider.class);
@@ -133,8 +136,8 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
         // Create the block region entity
         EntityManager entityManager = CoreRegistry.get(EntityManager.class);
         EntityRef multiBlockEntity = entityManager.create(prefab);
-        multiBlockEntity.addComponent(new BlockRegionComponent(JomlUtil.from(outsideBlockRegion)));
-        multiBlockEntity.addComponent(new LocationComponent(outsideBlockRegion.center()));
+        multiBlockEntity.addComponent(new BlockRegionComponent(outsideBlockRegion));
+        multiBlockEntity.addComponent(new LocationComponent(JomlUtil.from(outsideBlockRegion.center(new Vector3f()))));
 
         callback.multiBlockFormed(outsideBlockRegion, multiBlockEntity, null);
 

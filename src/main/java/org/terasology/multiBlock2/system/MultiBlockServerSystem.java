@@ -259,7 +259,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
 
     @ReceiveEvent
     public void onMultiBlockBlocksReplaced(PlaceBlocks event, EntityRef world) {
-        for (Vector3i vector3i : event.getBlocks().keySet()) {
+        for (org.joml.Vector3i vector3i : event.getBlocks().keySet()) {
             EntityRef blockEntity = blockEntityRegistry.getBlockEntityAt(vector3i);
             if (isEntityPartOfNotFullyLoadedMultiBlock(blockEntity)) {
                 event.consume();

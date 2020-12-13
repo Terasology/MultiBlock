@@ -19,6 +19,7 @@ import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.math.Region3i;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.world.block.Block;
+import org.terasology.world.block.BlockRegion;
 
 import java.util.Map;
 
@@ -26,7 +27,7 @@ import java.util.Map;
  * @author Marcin Sciesinski <marcins78@gmail.com>
  */
 public interface MultiBlockCallback<T> {
-    Map<Vector3i, Block> getReplacementMap(Region3i region, T designDetails);
+    Map<org.joml.Vector3i, Block> getReplacementMap(BlockRegion region, T designDetails);
 
-    void multiBlockFormed(Region3i region, EntityRef entity, T designDetails);
+    void multiBlockFormed(BlockRegion region, EntityRef entity, T designDetails);
 }

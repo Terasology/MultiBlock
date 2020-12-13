@@ -16,6 +16,7 @@
 package org.terasology.multiBlock.recipe;
 
 import com.google.common.base.Predicate;
+import org.joml.Vector3f;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.ActivateEvent;
@@ -31,6 +32,8 @@ import org.terasology.world.BlockEntityRegistry;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockComponent;
+import org.terasology.world.block.BlockRegion;
+import org.terasology.world.block.BlockRegions;
 import org.terasology.world.block.entity.placement.PlaceBlocks;
 import org.terasology.world.block.regions.BlockRegionComponent;
 
@@ -168,10 +171,11 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
             }
         }
 
-        Region3i multiBlockRegion = Region3i.createBounded(new Vector3i(minX, lastLayerYDown, minZ), new Vector3i(maxX, lastLayerYUp, maxZ));
+        BlockRegion multiBlockRegion = BlockRegions.encompassing(new org.joml.Vector3i(minX, lastLayerYDown, minZ),
+                new org.joml.Vector3i(maxX, lastLayerYUp, maxZ));
 
         if (callback != null) {
-            Map<Vector3i, Block> replacementMap = callback.getReplacementMap(multiBlockRegion, layerHeights);
+            Map<org.joml.Vector3i, Block> replacementMap = callback.getReplacementMap(multiBlockRegion, layerHeights);
 
             if (replacementMap != null) {
                 // Ok, now we can replace the blocks
@@ -189,8 +193,8 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         // Create the block region entity
         EntityManager entityManager = CoreRegistry.get(EntityManager.class);
         EntityRef multiBlockEntity = entityManager.create(prefab);
-        multiBlockEntity.addComponent(new BlockRegionComponent(JomlUtil.from(multiBlockRegion)));
-        multiBlockEntity.addComponent(new LocationComponent(multiBlockRegion.center()));
+        multiBlockEntity.addComponent(new BlockRegionComponent(multiBlockRegion));
+        multiBlockEntity.addComponent(new LocationComponent(JomlUtil.from(multiBlockRegion.center(new Vector3f()))));
 
         if (callback != null) {
             callback.multiBlockFormed(multiBlockRegion, multiBlockEntity, layerHeights);
