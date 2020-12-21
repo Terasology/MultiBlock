@@ -109,7 +109,7 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
         BlockRegion insideBlockRegion = BlockRegions.encompassing(new org.joml.Vector3i(minX + 1, minY + 1, minZ + 1), new org.joml.Vector3i(maxX - 1, maxY - 1, maxZ - 1));
         for (org.joml.Vector3ic blockLocation : BlockRegions.iterableInPlace(outsideBlockRegion)) {
             EntityRef blockEntity = blockEntityRegistry.getBlockEntityAt(blockLocation);
-            if (insideBlockRegion.containsBlock(blockLocation)) {
+            if (insideBlockRegion.contains(blockLocation)) {
                 if (!insideBlock.apply(blockEntity)) {
                     return false;
                 }
