@@ -1,18 +1,5 @@
-/*
- * Copyright 2014 MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 package org.terasology.multiBlock.recipe;
 
 import com.google.common.base.Predicate;
@@ -22,7 +9,6 @@ import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.ActivateEvent;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.math.JomlUtil;
-import org.terasology.math.Region3i;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.multiBlock.MultiBlockCallback;
 import org.terasology.multiBlock.MultiBlockFormed;
@@ -32,7 +18,6 @@ import org.terasology.world.WorldProvider;
 import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockComponent;
 import org.terasology.world.block.BlockRegion;
-import org.terasology.world.block.BlockRegions;
 import org.terasology.world.block.entity.placement.PlaceBlocks;
 import org.terasology.world.block.regions.BlockRegionComponent;
 
@@ -100,14 +85,15 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
         int maxZ = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(maxX, maxY, minZ), Vector3i.north()).z;
 
         // Now check that all the blocks in the region defined by these boundaries match the criteria
-        BlockRegion outsideBlockRegion = BlockRegions.encompassing(new org.joml.Vector3i(minX, minY, minZ), new org.joml.Vector3i(maxX, maxY, maxZ));
+        BlockRegion outsideBlockRegion = new BlockRegion(minX, minY, minZ).union(maxX, maxY, maxZ);
 
         if (!sizeFilter.apply(outsideBlockRegion.getSize(new org.joml.Vector3i()))) {
             return false;
         }
 
-        BlockRegion insideBlockRegion = BlockRegions.encompassing(new org.joml.Vector3i(minX + 1, minY + 1, minZ + 1), new org.joml.Vector3i(maxX - 1, maxY - 1, maxZ - 1));
-        for (org.joml.Vector3ic blockLocation : BlockRegions.iterableInPlace(outsideBlockRegion)) {
+        BlockRegion insideBlockRegion =
+                new BlockRegion(minX + 1, minY + 1, minZ + 1).union(maxX - 1, maxY - 1, maxZ - 1);
+        for (org.joml.Vector3ic blockLocation : outsideBlockRegion) {
             EntityRef blockEntity = blockEntityRegistry.getBlockEntityAt(blockLocation);
             if (insideBlockRegion.contains(blockLocation)) {
                 if (!insideBlock.apply(blockEntity)) {
