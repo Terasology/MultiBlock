@@ -15,11 +15,10 @@
  */
 package org.terasology.multiBlock2;
 
-import org.terasology.math.geom.Vector3i;
+import org.joml.Vector3i;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 
 public class DefaultMultiBlockDefinition implements MultiBlockDefinition {
     private String multiBlockType;

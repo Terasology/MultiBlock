@@ -16,13 +16,16 @@
 package org.terasology.multiBlock2.recipe;
 
 import com.google.common.base.Predicate;
+import org.joml.Vector2i;
+import org.joml.Vector3i;
+import org.joml.Vector3ic;
 import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.math.Region3i;
-import org.terasology.math.geom.Vector2i;
-import org.terasology.math.geom.Vector3i;
+import org.terasology.math.Direction;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.world.BlockEntityRegistry;
+import org.terasology.world.block.BlockRegion;
+import org.terasology.world.block.BlockRegionc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +52,7 @@ public abstract class LayeredMultiBlockRecipe<T extends MultiBlockDefinition> im
     }
 
     @Override
-    public T detectFormingMultiBlock(Vector3i location) {
+    public T detectFormingMultiBlock(Vector3ic location) {
         EntityRef target = blockEntityRegistry.getBlockEntityAt(location);
 
         for (int i = 0; i < layerDefinitions.size(); i++) {
@@ -65,14 +68,14 @@ public abstract class LayeredMultiBlockRecipe<T extends MultiBlockDefinition> im
         return null;
     }
 
-    private T processDetectionForLayer(int layerIndex, Vector3i basePosition) {
+    private T processDetectionForLayer(int layerIndex, Vector3ic basePosition) {
         BlockEntityRegistry blockEntityRegistry = CoreRegistry.get(BlockEntityRegistry.class);
         LayerDefinition layerDefinition = layerDefinitions.get(layerIndex);
         Predicate<EntityRef> entityFilter = layerDefinition.entityFilter;
-        int minX = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.east()).x;
-        int maxX = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.west()).x;
-        int minZ = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.south()).z;
-        int maxZ = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.north()).z;
+        int minX = getLastMatchingInDirection(entityFilter, basePosition, Direction.RIGHT.asVector3i()).x;
+        int maxX = getLastMatchingInDirection(entityFilter, basePosition, Direction.LEFT.asVector3i()).x;
+        int minZ = getLastMatchingInDirection(entityFilter, basePosition, Direction.DOWN.asVector3i()).z;
+        int maxZ = getLastMatchingInDirection(entityFilter, basePosition, Direction.UP.asVector3i()).z;
 
         // First check if the size is accepted at all
         Vector2i multiBlockHorizontalSize = new Vector2i(maxX - minX + 1, maxZ - minZ + 1);
@@ -80,8 +83,8 @@ public abstract class LayeredMultiBlockRecipe<T extends MultiBlockDefinition> im
             return null;
         }
 
-        int minY = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.down()).y;
-        int maxY = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.up()).y;
+        int minY = getLastMatchingInDirection(entityFilter, basePosition, Direction.DOWN.asVector3i()).y;
+        int maxY = getLastMatchingInDirection(entityFilter, basePosition, Direction.UP.asVector3i()).y;
 
         // Then check if this layer height is accepted
         int layerHeight = maxY - minY + 1;
@@ -96,8 +99,8 @@ public abstract class LayeredMultiBlockRecipe<T extends MultiBlockDefinition> im
         int lastLayerYUp = maxY;
         for (int i = layerIndex + 1; i < layerDefinitions.size(); i++) {
             LayerDefinition upLayerDefinition = layerDefinitions.get(i);
-            int lastMatchingY = getLastMatchingInDirection(blockEntityRegistry, upLayerDefinition.entityFilter,
-                    new Vector3i(basePosition.x, lastLayerYUp, basePosition.z), Vector3i.up()).y;
+            int lastMatchingY = getLastMatchingInDirection(upLayerDefinition.entityFilter,
+                    new Vector3i(basePosition.x(), lastLayerYUp, basePosition.z()), Direction.UP.asVector3i()).y;
             // Layer height
             int upLayerHeight = lastMatchingY - lastLayerYUp;
             if (upLayerDefinition.minHeight > upLayerHeight || upLayerDefinition.maxHeight < upLayerHeight) {
@@ -111,8 +114,8 @@ public abstract class LayeredMultiBlockRecipe<T extends MultiBlockDefinition> im
         int lastLayerYDown = minY;
         for (int i = layerIndex - 1; i >= 0; i--) {
             LayerDefinition downLayerDefinition = layerDefinitions.get(i);
-            int lastMatchingY = getLastMatchingInDirection(blockEntityRegistry, downLayerDefinition.entityFilter,
-                    new Vector3i(basePosition.x, lastLayerYUp, basePosition.z), Vector3i.down()).y;
+            int lastMatchingY = getLastMatchingInDirection(downLayerDefinition.entityFilter,
+                    new Vector3i(basePosition.x(), lastLayerYUp, basePosition.z()), Direction.DOWN.asVector3i()).y;
             // Layer height
             int downLayerHeight = lastLayerYDown - lastMatchingY;
             if (downLayerDefinition.minHeight > downLayerHeight || downLayerDefinition.maxHeight < downLayerHeight) {
@@ -126,10 +129,9 @@ public abstract class LayeredMultiBlockRecipe<T extends MultiBlockDefinition> im
         int validationY = lastLayerYDown;
         for (int i = 0; i < layerHeights.length; i++) {
             if (layerHeights[i] > 0) {
-                Region3i layerRegion = Region3i.createBounded(new Vector3i(minX, validationY, minZ),
-                        new Vector3i(maxX, validationY + layerHeights[i] - 1, maxZ));
+                BlockRegion layerRegion = new BlockRegion(minX, validationY, minZ).union(maxX, validationY + layerHeights[i] - 1, maxZ);
                 LayerDefinition validateLayerDefinition = layerDefinitions.get(i);
-                for (Vector3i position : layerRegion) {
+                for (Vector3ic position : layerRegion) {
                     if (!validateLayerDefinition.entityFilter.apply(blockEntityRegistry.getBlockEntityAt(position))) {
                         return null;
                     }
@@ -138,17 +140,17 @@ public abstract class LayeredMultiBlockRecipe<T extends MultiBlockDefinition> im
             }
         }
 
-        Region3i multiBlockRegion = Region3i.createBounded(new Vector3i(minX, lastLayerYDown, minZ), new Vector3i(maxX, lastLayerYUp, maxZ));
+        BlockRegion multiBlockRegion = new BlockRegion(minX, lastLayerYDown, minZ).union(maxX, lastLayerYUp, maxZ);
 
         return createMultiBlockDefinition(multiBlockRegion, layerHeights);
     }
 
-    protected abstract T createMultiBlockDefinition(Region3i multiBlockRegion, int[] layerHeights);
+    protected abstract T createMultiBlockDefinition(BlockRegionc multiBlockRegion, int[] layerHeights);
 
-    private Vector3i getLastMatchingInDirection(BlockEntityRegistry blockEntityRegistry, Predicate<EntityRef> entityFilter, Vector3i location, Vector3i direction) {
-        Vector3i result = location;
+    private Vector3i getLastMatchingInDirection(Predicate<EntityRef> entityFilter, Vector3ic location, Vector3ic direction) {
+        Vector3i result = new Vector3i(location);
         while (true) {
-            Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y, result.z + direction.z);
+            Vector3i testedLocation = result.add(direction, new Vector3i());
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
             if (!entityFilter.apply(blockEntityAt)) {
                 return result;

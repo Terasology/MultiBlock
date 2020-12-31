@@ -15,7 +15,7 @@
  */
 package org.terasology.multiBlock2.recipe;
 
-import org.terasology.math.geom.Vector3i;
+import org.joml.Vector3ic;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 
 /**
@@ -33,5 +33,5 @@ import org.terasology.multiBlock2.MultiBlockDefinition;
  * @param <T>
  */
 public interface MultiBlockRecipe<T extends MultiBlockDefinition> {
-    public T detectFormingMultiBlock(Vector3i location);
+    public T detectFormingMultiBlock(Vector3ic location);
 }

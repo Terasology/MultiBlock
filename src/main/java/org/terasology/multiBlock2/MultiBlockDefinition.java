@@ -15,7 +15,8 @@
  */
 package org.terasology.multiBlock2;
 
-import org.terasology.math.geom.Vector3i;
+
+import org.joml.Vector3i;
 
 import java.util.Collection;
 

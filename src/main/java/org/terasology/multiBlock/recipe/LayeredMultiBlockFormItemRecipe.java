@@ -3,15 +3,15 @@
 package org.terasology.multiBlock.recipe;
 
 import com.google.common.base.Predicate;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
+import org.joml.Vector3ic;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.ActivateEvent;
 import org.terasology.logic.location.LocationComponent;
-import org.terasology.math.JomlUtil;
-import org.terasology.math.Region3i;
-import org.terasology.math.geom.Vector2i;
-import org.terasology.math.geom.Vector3i;
+import org.terasology.math.Direction;
 import org.terasology.multiBlock.MultiBlockCallback;
 import org.terasology.multiBlock.MultiBlockFormed;
 import org.terasology.registry.CoreRegistry;
@@ -39,6 +39,8 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
 
     private List<LayerDefinition> layerDefinitions = new ArrayList<>();
 
+    private BlockEntityRegistry blockEntityRegistry;
+
     public LayeredMultiBlockFormItemRecipe(Predicate<EntityRef> itemFilter, Predicate<Vector2i> sizeFilter,
                                            Predicate<ActivateEvent> activateEventFilter, String prefab, MultiBlockCallback<int[]> callback) {
         this.itemFilter = itemFilter;
@@ -46,6 +48,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         this.activateEventFilter = activateEventFilter;
         this.prefab = prefab;
         this.callback = callback;
+        this.blockEntityRegistry = CoreRegistry.get(BlockEntityRegistry.class);
     }
 
     @Override
@@ -75,7 +78,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         for (int i = 0; i < layerDefinitions.size(); i++) {
             LayerDefinition layerDefinition = layerDefinitions.get(i);
             if (layerDefinition.entityFilter.apply(target)) {
-                if (processDetectionForLayer(event, i, targetBlock.getPosition())) {
+                if (processDetectionForLayer(event, i, targetBlock.getPosition(new Vector3i()))) {
                     return true;
                 }
             }
@@ -85,13 +88,12 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
     }
 
     private boolean processDetectionForLayer(ActivateEvent event, int layerIndex, Vector3i basePosition) {
-        BlockEntityRegistry blockEntityRegistry = CoreRegistry.get(BlockEntityRegistry.class);
         LayerDefinition layerDefinition = layerDefinitions.get(layerIndex);
         Predicate<EntityRef> entityFilter = layerDefinition.entityFilter;
-        int minX = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.east()).x;
-        int maxX = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.west()).x;
-        int minZ = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.south()).z;
-        int maxZ = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.north()).z;
+        int minX = getLastMatchingInDirection( entityFilter, basePosition, Direction.RIGHT.asVector3i()).x;
+        int maxX = getLastMatchingInDirection( entityFilter, basePosition, Direction.LEFT.asVector3i()).x;
+        int minZ = getLastMatchingInDirection( entityFilter, basePosition, Direction.FORWARD.asVector3i()).z;
+        int maxZ = getLastMatchingInDirection( entityFilter, basePosition, Direction.BACKWARD.asVector3i()).z;
 
         // First check if the size is accepted at all
         Vector2i multiBlockHorizontalSize = new Vector2i(maxX - minX + 1, maxZ - minZ + 1);
@@ -99,8 +101,8 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
             return false;
         }
 
-        int minY = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.down()).y;
-        int maxY = getLastMatchingInDirection(blockEntityRegistry, entityFilter, basePosition, Vector3i.up()).y;
+        int minY = getLastMatchingInDirection( entityFilter, basePosition, Direction.DOWN.asVector3i()).y;
+        int maxY = getLastMatchingInDirection( entityFilter, basePosition,  Direction.UP.asVector3i()).y;
 
         // Then check if this layer height is accepted
         int layerHeight = maxY - minY + 1;
@@ -115,8 +117,8 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         int lastLayerYUp = maxY;
         for (int i = layerIndex + 1; i < layerDefinitions.size(); i++) {
             LayerDefinition upLayerDefinition = layerDefinitions.get(i);
-            int lastMatchingY = getLastMatchingInDirection(blockEntityRegistry, upLayerDefinition.entityFilter,
-                    new Vector3i(basePosition.x, lastLayerYUp, basePosition.z), Vector3i.up()).y;
+            int lastMatchingY = getLastMatchingInDirection(upLayerDefinition.entityFilter,
+                    new Vector3i(basePosition.x, lastLayerYUp, basePosition.z), Direction.UP.asVector3i()).y;
             // Layer height
             int upLayerHeight = lastMatchingY - lastLayerYUp;
             if (upLayerDefinition.minHeight > upLayerHeight || upLayerDefinition.maxHeight < upLayerHeight) {
@@ -130,8 +132,8 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         int lastLayerYDown = minY;
         for (int i = layerIndex - 1; i >= 0; i--) {
             LayerDefinition downLayerDefinition = layerDefinitions.get(i);
-            int lastMatchingY = getLastMatchingInDirection(blockEntityRegistry, downLayerDefinition.entityFilter,
-                    new Vector3i(basePosition.x, lastLayerYUp, basePosition.z), Vector3i.down()).y;
+            int lastMatchingY = getLastMatchingInDirection(downLayerDefinition.entityFilter,
+                    new Vector3i(basePosition.x, lastLayerYUp, basePosition.z), Direction.DOWN.asVector3i()).y;
             // Layer height
             int downLayerHeight = lastLayerYDown - lastMatchingY;
             if (downLayerDefinition.minHeight > downLayerHeight || downLayerDefinition.maxHeight < downLayerHeight) {
@@ -145,10 +147,9 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         int validationY = lastLayerYDown;
         for (int i = 0; i < layerHeights.length; i++) {
             if (layerHeights[i] > 0) {
-                Region3i layerRegion = Region3i.createBounded(new Vector3i(minX, validationY, minZ),
-                        new Vector3i(maxX, validationY + layerHeights[i] - 1, maxZ));
+                BlockRegion layerRegion = new BlockRegion(minX, validationY, minZ).union(maxX, validationY + layerHeights[i] - 1, maxZ);
                 LayerDefinition validateLayerDefinition = layerDefinitions.get(i);
-                for (Vector3i position : layerRegion) {
+                for (Vector3ic position : layerRegion) {
                     if (!validateLayerDefinition.entityFilter.apply(blockEntityRegistry.getBlockEntityAt(position))) {
                         return false;
                     }
@@ -179,7 +180,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         EntityManager entityManager = CoreRegistry.get(EntityManager.class);
         EntityRef multiBlockEntity = entityManager.create(prefab);
         multiBlockEntity.addComponent(new BlockRegionComponent(multiBlockRegion));
-        multiBlockEntity.addComponent(new LocationComponent(JomlUtil.from(multiBlockRegion.center(new Vector3f()))));
+        multiBlockEntity.addComponent(new LocationComponent(multiBlockRegion.center(new Vector3f())));
 
         if (callback != null) {
             callback.multiBlockFormed(multiBlockRegion, multiBlockEntity, layerHeights);
@@ -190,10 +191,10 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         return true;
     }
 
-    private Vector3i getLastMatchingInDirection(BlockEntityRegistry blockEntityRegistry, Predicate<EntityRef> entityFilter, Vector3i location, Vector3i direction) {
-        Vector3i result = location;
+    private Vector3i getLastMatchingInDirection( Predicate<EntityRef> entityFilter, Vector3ic location, Vector3ic direction) {
+        Vector3i result = new Vector3i(location);
         while (true) {
-            Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y, result.z + direction.z);
+            Vector3i testedLocation = result.add(direction, new Vector3i());
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
             if (!entityFilter.apply(blockEntityAt)) {
                 return result;
