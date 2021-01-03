@@ -18,6 +18,7 @@ package org.terasology.multiBlock2.system;
 import com.google.common.collect.Iterables;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+import org.joml.Vector3ic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.entitySystem.entity.EntityBuilder;
@@ -33,6 +34,7 @@ import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.health.event.BeforeDamagedEvent;
 import org.terasology.logic.location.LocationComponent;
+import org.terasology.math.JomlUtil;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 import org.terasology.multiBlock2.MultiBlockRegistry;
 import org.terasology.multiBlock2.block.VisibilityEnabledBlockFamily;
@@ -54,7 +56,6 @@ import org.terasology.world.block.BlockComponent;
 import org.terasology.world.block.BlockRegion;
 import org.terasology.world.block.entity.placement.PlaceBlocks;
 import org.terasology.world.block.family.BlockFamily;
-import org.terasology.world.chunks.ChunkConstants;
 import org.terasology.world.chunks.Chunks;
 import org.terasology.world.chunks.event.BeforeChunkUnload;
 
@@ -191,11 +192,11 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
 
     @ReceiveEvent
     public void beforeChunkUnloaded(BeforeChunkUnload beforeChunkUnload, EntityRef world) {
-        BlockRegion chunkRegion = getChunkRegion(beforeChunkUnload.getChunkPos());
+        BlockRegion chunkRegion = getChunkRegion(JomlUtil.from(beforeChunkUnload.getChunkPos()));
         Iterator<Map.Entry<BlockRegion, EntityRef>> iterator = loadedMultiBlocks.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<BlockRegion, EntityRef> multiBlock = iterator.next();
-            if (!chunkRegion.intersect(multiBlock.getKey()).isEmpty()) {
+            if (chunkRegion.intersectsBlockRegion(multiBlock.getKey())) {
                 EntityRef multiBlockEntity = multiBlock.getValue();
                 MultiBlockComponent component = multiBlockEntity.getComponent(MultiBlockComponent.class);
                 multiBlockEntity.send(new BeforeMultiBlockUnloaded(component.getType(), component.getMainBlockEntity()));
@@ -313,7 +314,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
 
         internallyMutating = true;
         try {
-            for (Vector3i memberLocation : mainBlockComponent.getMultiBlockMembers()) {
+            for (Vector3ic memberLocation : mainBlockComponent.getMultiBlockMembers()) {
                 setBlockVisibilityIfNeeded(memberLocation, true);
                 EntityRef memberEntity = blockEntityRegistry.getBlockEntityAt(memberLocation);
                 memberEntity.removeComponent(MultiBlockMemberComponent.class);
@@ -333,7 +334,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         String multiBlockType = definition.getMultiBlockType();
 
         Collection<Vector3i> memberLocations = definition.getMemberBlocks();
-        BlockRegion aabb = createAABB(mainLocation, memberLocations);
+        BlockRegion region = createRegion(mainLocation, memberLocations);
 
         EntityRef mainBlockEntity = blockEntityRegistry.getBlockEntityAt(mainLocation);
 
@@ -344,7 +345,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
             setBlockVisibilityIfNeeded(mainLocation, false);
 
             mainBlockEntity.addComponent(
-                    new MultiBlockMainComponent(new LinkedList<>(memberLocations), aabb, multiBlockEntity, multiBlockType));
+                    new MultiBlockMainComponent(new LinkedList<>(memberLocations), region, multiBlockEntity, multiBlockType));
 
             for (Vector3i memberLocation : memberLocations) {
                 setBlockVisibilityIfNeeded(memberLocation, false);
@@ -354,12 +355,12 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
             internallyMutating = false;
         }
 
-        loadedMultiBlocks.put(aabb, multiBlockEntity);
+        loadedMultiBlocks.put(region, multiBlockEntity);
 
         multiBlockEntity.send(new MultiBlockFormed<>(multiBlockType, definition));
     }
 
-    private void setBlockVisibilityIfNeeded(Vector3i location, boolean visible) {
+    private void setBlockVisibilityIfNeeded(Vector3ic location, boolean visible) {
         Block currentBlock = worldProvider.getBlock(location);
         BlockFamily blockFamily = currentBlock.getBlockFamily();
         if (blockFamily instanceof VisibilityEnabledBlockFamily) {
@@ -385,7 +386,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         return entityBuilder.build();
     }
 
-    private BlockRegion createAABB(Vector3i mainLocation, Collection<Vector3i> memberLocations) {
+    private BlockRegion createRegion(Vector3i mainLocation, Collection<Vector3i> memberLocations) {
         BlockRegion aabb = new BlockRegion(mainLocation);
         for (Vector3i memberLocation : memberLocations) {
             aabb = aabb.union(memberLocation);

@@ -19,6 +19,7 @@ import org.joml.Vector3i;
 import org.terasology.entitySystem.Component;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.world.block.BlockRegion;
+import org.terasology.world.block.BlockRegionc;
 import org.terasology.world.block.ForceBlockActive;
 
 import java.util.Collection;
@@ -38,9 +39,9 @@ public class MultiBlockMainComponent implements Component {
     public MultiBlockMainComponent() {
     }
 
-    public MultiBlockMainComponent(List<Vector3i> multiBlockMembers, BlockRegion aabb, EntityRef multiBlockEntity, String multiBlockType) {
+    public MultiBlockMainComponent(List<Vector3i> multiBlockMembers, BlockRegionc aabb, EntityRef multiBlockEntity, String multiBlockType) {
         this.multiBlockMembers = multiBlockMembers;
-        this.aabb = aabb;
+        this.aabb = new BlockRegion(aabb);
         this.multiBlockEntity = multiBlockEntity;
         this.multiBlockType = multiBlockType;
     }
