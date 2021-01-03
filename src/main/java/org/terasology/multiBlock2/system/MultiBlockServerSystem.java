@@ -292,7 +292,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
                 && worldProvider.isRegionRelevant(multiBlockMain.getAabb())) {
             EntityRef multiBlockEntity = createMultiBlockEntity(mainBlockEntity, position, multiBlockMain.getMultiBlockType());
 
-            loadedMultiBlocks.put(multiBlockMain.getAabb(), multiBlockEntity);
+            loadedMultiBlocks.put(new BlockRegion(multiBlockMain.getAabb()), multiBlockEntity);
             multiBlockMain.setMultiBlockEntity(multiBlockEntity);
 
             multiBlockEntity.send(new MultiBlockLoaded(multiBlockMain.getMultiBlockType(), mainBlockEntity));
