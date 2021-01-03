@@ -193,6 +193,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
 
     private Vector3i getLastMatchingInDirection( Predicate<EntityRef> entityFilter, Vector3ic location, Vector3ic direction) {
         Vector3i result = new Vector3i(location);
+        Vector3i tmp = new Vector3i();
         while (true) {
             Vector3i testedLocation = result.add(direction, new Vector3i());
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
