@@ -54,8 +54,8 @@ public abstract class UniformBaseMultiBlockRecipe<T extends MultiBlockDefinition
         int maxX = getLastMatchingInDirection(target, location, Direction.LEFT.asVector3i()).x;
         int minY = getLastMatchingInDirection(target, location, Direction.DOWN.asVector3i()).y;
         int maxY = getLastMatchingInDirection(target, location, Direction.UP.asVector3i()).y;
-        int minZ = getLastMatchingInDirection(target, location, Direction.FORWARD.asVector3i()).z;
-        int maxZ = getLastMatchingInDirection(target, location, Direction.BACKWARD.asVector3i()).z;
+        int minZ = getLastMatchingInDirection(target, location, Direction.BACKWARD.asVector3i()).z;
+        int maxZ = getLastMatchingInDirection(target, location, Direction.FORWARD.asVector3i()).z;
 
         BlockRegion multiBlockRegion = new BlockRegion(minX, minY, minZ).union(maxX, maxY, maxZ);
 
