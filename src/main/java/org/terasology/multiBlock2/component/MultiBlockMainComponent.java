@@ -50,7 +50,7 @@ public class MultiBlockMainComponent implements Component {
         return Collections.unmodifiableList(multiBlockMembers);
     }
 
-    public BlockRegion getAabb() {
+    public BlockRegionc getAabb() {
         return aabb;
     }
 
