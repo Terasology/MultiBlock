@@ -196,7 +196,7 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         Vector3i tmp = new Vector3i();
         while (true) {
             result.add(direction, tmp);
-            EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
+            EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(tmp);
             if (!entityFilter.apply(blockEntityAt)) {
                 return result;
             }
