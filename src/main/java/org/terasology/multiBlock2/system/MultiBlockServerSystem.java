@@ -329,12 +329,13 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         multiBlockEntity.destroy();
     }
 
+
     private void createMultiBlock(MultiBlockDefinition definition) {
         Vector3i mainLocation = definition.getMainBlock();
         String multiBlockType = definition.getMultiBlockType();
 
         Collection<Vector3i> memberLocations = definition.getMemberBlocks();
-        BlockRegion region = createRegion(mainLocation, memberLocations);
+        BlockRegion region = memberLocations.stream().reduce(new BlockRegion(mainLocation), BlockRegion::union, BlockRegion::union);
 
         EntityRef mainBlockEntity = blockEntityRegistry.getBlockEntityAt(mainLocation);
 
@@ -384,14 +385,6 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         entityBuilder.addComponent(locationComponent);
         entityBuilder.addComponent(multiBlockComponent);
         return entityBuilder.build();
-    }
-
-    private BlockRegion createRegion(Vector3i mainLocation, Collection<Vector3i> memberLocations) {
-        BlockRegion aabb = new BlockRegion(mainLocation);
-        for (Vector3i memberLocation : memberLocations) {
-            aabb = aabb.union(memberLocation);
-        }
-        return aabb;
     }
 
     private boolean areAllMultiBlocksInTheWayRelevant(Set<EntityRef> multiBlockMainBlockEntities) {

@@ -92,8 +92,8 @@ public class LayeredMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         Predicate<EntityRef> entityFilter = layerDefinition.entityFilter;
         int minX = getLastMatchingInDirection( entityFilter, basePosition, Direction.RIGHT.asVector3i()).x;
         int maxX = getLastMatchingInDirection( entityFilter, basePosition, Direction.LEFT.asVector3i()).x;
-        int minZ = getLastMatchingInDirection( entityFilter, basePosition, Direction.FORWARD.asVector3i()).z;
-        int maxZ = getLastMatchingInDirection( entityFilter, basePosition, Direction.BACKWARD.asVector3i()).z;
+        int minZ = getLastMatchingInDirection( entityFilter, basePosition, Direction.BACKWARD.asVector3i()).z;
+        int maxZ = getLastMatchingInDirection( entityFilter, basePosition, Direction.FORWARD.asVector3i()).z;
 
         // First check if the size is accepted at all
         Vector2i multiBlockHorizontalSize = new Vector2i(maxX - minX + 1, maxZ - minZ + 1);

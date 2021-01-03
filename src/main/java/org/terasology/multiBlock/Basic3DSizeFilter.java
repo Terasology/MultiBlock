@@ -17,8 +17,9 @@ package org.terasology.multiBlock;
 
 import com.google.common.base.Predicate;
 import org.joml.Vector3i;
+import org.joml.Vector3ic;
 
-public class Basic3DSizeFilter implements Predicate<Vector3i> {
+public class Basic3DSizeFilter implements Predicate<Vector3ic> {
     private int minHorizontal;
     private int maxHorizontal;
     private int minHeight;
@@ -32,9 +33,9 @@ public class Basic3DSizeFilter implements Predicate<Vector3i> {
     }
 
     @Override
-    public boolean apply(Vector3i value) {
-        return minHorizontal == Math.min(value.x, value.z)
-                && maxHorizontal == Math.max(value.x, value.z)
-                && minHeight <= value.y && maxHeight >= value.y;
+    public boolean apply(Vector3ic value) {
+        return minHorizontal == Math.min(value.x(), value.z())
+            && maxHorizontal == Math.max(value.x(), value.z())
+            && minHeight <= value.y() && maxHeight >= value.y();
     }
 }
