@@ -16,7 +16,6 @@
 package org.terasology.multiBlock;
 
 import com.google.common.base.Predicate;
-import org.joml.Vector3i;
 import org.joml.Vector3ic;
 
 public class Basic3DSizeFilter implements Predicate<Vector3ic> {
