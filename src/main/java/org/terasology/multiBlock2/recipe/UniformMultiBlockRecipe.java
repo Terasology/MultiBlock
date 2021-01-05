@@ -16,11 +16,13 @@
 package org.terasology.multiBlock2.recipe;
 
 import com.google.common.base.Predicate;
+import org.joml.Vector3i;
+import org.joml.Vector3ic;
 import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.math.Region3i;
-import org.terasology.math.geom.Vector3i;
+import org.terasology.math.Direction;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 import org.terasology.world.BlockEntityRegistry;
+import org.terasology.world.block.BlockRegion;
 
 public abstract class UniformMultiBlockRecipe<T extends MultiBlockDefinition> implements MultiBlockRecipe<T> {
     private BlockEntityRegistry blockEntityRegistry;
@@ -34,29 +36,30 @@ public abstract class UniformMultiBlockRecipe<T extends MultiBlockDefinition> im
     }
 
     @Override
-    public T detectFormingMultiBlock(Vector3i location) {
+    public T detectFormingMultiBlock(Vector3ic location) {
         EntityRef target = blockEntityRegistry.getBlockEntityAt(location);
 
         if (!blockFilter.apply(target)) {
             return null;
         }
 
-        int minX = getLastMatchingInDirection(location, Vector3i.east()).x;
-        int maxX = getLastMatchingInDirection(location, Vector3i.west()).x;
-        int minY = getLastMatchingInDirection(location, Vector3i.down()).y;
-        int maxY = getLastMatchingInDirection(location, Vector3i.up()).y;
-        int minZ = getLastMatchingInDirection(location, Vector3i.south()).z;
-        int maxZ = getLastMatchingInDirection(location, Vector3i.north()).z;
 
-        Region3i multiBlockRegion = Region3i.createBounded(new Vector3i(minX, minY, minZ), new Vector3i(maxX, maxY, maxZ));
+        int minX = getLastMatchingInDirection(location, Direction.RIGHT.asVector3i()).x;
+        int maxX = getLastMatchingInDirection(location, Direction.LEFT.asVector3i()).x;
+        int minY = getLastMatchingInDirection(location, Direction.DOWN.asVector3i()).y;
+        int maxY = getLastMatchingInDirection(location, Direction.UP.asVector3i()).y;
+        int minZ = getLastMatchingInDirection(location, Direction.BACKWARD.asVector3i()).z;
+        int maxZ = getLastMatchingInDirection(location, Direction.FORWARD.asVector3i()).z;
+
+        BlockRegion multiBlockRegion = new BlockRegion(minX, minY, minZ).union(maxX, maxY, maxZ);
 
         // Check if the size is accepted
-        if (!sizeFilter.apply(multiBlockRegion.size())) {
+        if (!sizeFilter.apply(multiBlockRegion.getSize(new Vector3i()))) {
             return null;
         }
 
         // Now check that all the blocks in the region defined by these boundaries match the criteria
-        for (Vector3i blockLocation : multiBlockRegion) {
+        for (Vector3ic blockLocation : multiBlockRegion) {
             if (!blockFilter.apply(blockEntityRegistry.getBlockEntityAt(blockLocation))) {
                 return null;
             }
@@ -65,17 +68,18 @@ public abstract class UniformMultiBlockRecipe<T extends MultiBlockDefinition> im
         return createMultiBlockDefinition(multiBlockRegion);
     }
 
-    protected abstract T createMultiBlockDefinition(Region3i multiBlockRegion);
+    protected abstract T createMultiBlockDefinition(BlockRegion multiBlockRegion);
 
-    private Vector3i getLastMatchingInDirection(Vector3i location, Vector3i direction) {
-        Vector3i result = location;
+    private Vector3i getLastMatchingInDirection(Vector3ic location, Vector3ic direction) {
+        Vector3i result = new Vector3i(location);
+        Vector3i testedLocation = new Vector3i();
         while (true) {
-            Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y, result.z + direction.z);
+            result.add(direction, testedLocation);
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
             if (!blockFilter.apply(blockEntityAt)) {
                 return result;
             }
-            result = testedLocation;
+            result.set(testedLocation);
         }
     }
 }

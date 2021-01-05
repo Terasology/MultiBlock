@@ -15,12 +15,12 @@
  */
 package org.terasology.multiBlock2;
 
+import org.joml.Vector3i;
 import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.math.geom.Vector3i;
 import org.terasology.multiBlock2.recipe.MultiBlockRecipe;
 
 public interface MultiBlockRegistry {
-    public void registerMultiBlockType(String multiBlockCandidate, MultiBlockRecipe<?> multiBlockRecipe);
+    void registerMultiBlockType(String multiBlockCandidate, MultiBlockRecipe<?> multiBlockRecipe);
 
-    public EntityRef getMultiBlockAtLocation(Vector3i location, String type);
+    EntityRef getMultiBlockAtLocation(Vector3i location, String type);
 }

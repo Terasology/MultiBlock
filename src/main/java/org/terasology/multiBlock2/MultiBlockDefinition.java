@@ -15,12 +15,13 @@
  */
 package org.terasology.multiBlock2;
 
-import org.terasology.math.geom.Vector3i;
+
+import org.joml.Vector3i;
 
 import java.util.Collection;
 
 public interface MultiBlockDefinition {
-    public String getMultiBlockType();
-    public Vector3i getMainBlock();
-    public Collection<Vector3i> getMemberBlocks();
+    String getMultiBlockType();
+    Vector3i getMainBlock();
+    Collection<Vector3i> getMemberBlocks();
 }

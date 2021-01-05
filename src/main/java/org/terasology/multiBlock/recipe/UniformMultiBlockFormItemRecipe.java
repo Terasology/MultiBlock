@@ -30,12 +30,12 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
     private Predicate<EntityRef> activatorFilter;
     private Predicate<ActivateEvent> activateEventFilter;
     private Predicate<EntityRef> blockFilter;
-    private Predicate<org.joml.Vector3i> sizeFilter;
+    private Predicate<org.joml.Vector3ic> sizeFilter;
     private String prefab;
     private MultiBlockCallback<Void> callback;
 
     public UniformMultiBlockFormItemRecipe(Predicate<EntityRef> activatorFilter, Predicate<ActivateEvent> activateEventFilter,
-                                           Predicate<EntityRef> blockFilter, Predicate<org.joml.Vector3i> sizeFilter,
+                                           Predicate<EntityRef> blockFilter, Predicate<org.joml.Vector3ic> sizeFilter,
                                            String multiBlockPrefab, MultiBlockCallback<Void> callback) {
         this.activatorFilter = activatorFilter;
         this.activateEventFilter = activateEventFilter;

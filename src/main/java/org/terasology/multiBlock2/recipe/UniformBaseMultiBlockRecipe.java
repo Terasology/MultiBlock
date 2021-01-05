@@ -16,11 +16,15 @@
 package org.terasology.multiBlock2.recipe;
 
 import com.google.common.base.Predicate;
+import org.joml.Vector3i;
+import org.joml.Vector3ic;
 import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.math.Direction;
 import org.terasology.math.Region3i;
-import org.terasology.math.geom.Vector3i;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 import org.terasology.world.BlockEntityRegistry;
+import org.terasology.world.block.BlockRegion;
+import org.terasology.world.block.BlockRegionc;
 
 import java.util.function.BiPredicate;
 
@@ -39,29 +43,29 @@ public abstract class UniformBaseMultiBlockRecipe<T extends MultiBlockDefinition
     }
 
     @Override
-    public T detectFormingMultiBlock(Vector3i location) {
+    public T detectFormingMultiBlock(Vector3ic location) {
         EntityRef target = blockEntityRegistry.getBlockEntityAt(location);
 
         if (!baseEntityPredicate.apply(target)) {
             return null;
         }
 
-        int minX = getLastMatchingInDirection(target, location, Vector3i.east()).x;
-        int maxX = getLastMatchingInDirection(target, location, Vector3i.west()).x;
-        int minY = getLastMatchingInDirection(target, location, Vector3i.down()).y;
-        int maxY = getLastMatchingInDirection(target, location, Vector3i.up()).y;
-        int minZ = getLastMatchingInDirection(target, location, Vector3i.south()).z;
-        int maxZ = getLastMatchingInDirection(target, location, Vector3i.north()).z;
+        int minX = getLastMatchingInDirection(target, location, Direction.RIGHT.asVector3i()).x;
+        int maxX = getLastMatchingInDirection(target, location, Direction.LEFT.asVector3i()).x;
+        int minY = getLastMatchingInDirection(target, location, Direction.DOWN.asVector3i()).y;
+        int maxY = getLastMatchingInDirection(target, location, Direction.UP.asVector3i()).y;
+        int minZ = getLastMatchingInDirection(target, location, Direction.BACKWARD.asVector3i()).z;
+        int maxZ = getLastMatchingInDirection(target, location, Direction.FORWARD.asVector3i()).z;
 
-        Region3i multiBlockRegion = Region3i.createBounded(new Vector3i(minX, minY, minZ), new Vector3i(maxX, maxY, maxZ));
+        BlockRegion multiBlockRegion = new BlockRegion(minX, minY, minZ).union(maxX, maxY, maxZ);
 
         // Check if the size is accepted
-        if (!sizeFilter.apply(multiBlockRegion.size())) {
+        if (!sizeFilter.apply(multiBlockRegion.getSize(new Vector3i()))) {
             return null;
         }
 
         // Now check that all the blocks in the region defined by these boundaries match the criteria
-        for (Vector3i blockLocation : multiBlockRegion) {
+        for (Vector3ic blockLocation : multiBlockRegion) {
             if (!baseEntityPredicate.apply(blockEntityRegistry.getBlockEntityAt(blockLocation))) {
                 return null;
             }
@@ -70,17 +74,18 @@ public abstract class UniformBaseMultiBlockRecipe<T extends MultiBlockDefinition
         return createMultiBlockDefinition(multiBlockRegion);
     }
 
-    protected abstract T createMultiBlockDefinition(Region3i multiBlockRegion);
+    protected abstract T createMultiBlockDefinition(BlockRegionc multiBlockRegion);
 
-    private Vector3i getLastMatchingInDirection(EntityRef targetEntity, Vector3i location, Vector3i direction) {
-        Vector3i result = location;
+    private Vector3i getLastMatchingInDirection(EntityRef targetEntity, Vector3ic location, Vector3ic direction) {
+        Vector3i result = new Vector3i(location);
+        Vector3i testedLocation = new Vector3i();
         while (true) {
-            Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y, result.z + direction.z);
+            result.add(direction, testedLocation);
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
             if (!otherEntitiesPredicate.test(targetEntity, blockEntityAt)) {
                 return result;
             }
-            result = testedLocation;
+            result.set(testedLocation);
         }
     }
 }

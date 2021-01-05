@@ -16,7 +16,7 @@
 package org.terasology.multiBlock;
 
 import com.google.common.base.Predicate;
-import org.terasology.math.geom.Vector2i;
+import org.joml.Vector2i;
 
 public class Basic2DSizeFilter implements Predicate<Vector2i> {
     private int minHorizontal;
