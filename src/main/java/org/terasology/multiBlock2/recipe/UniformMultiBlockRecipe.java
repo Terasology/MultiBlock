@@ -72,13 +72,14 @@ public abstract class UniformMultiBlockRecipe<T extends MultiBlockDefinition> im
 
     private Vector3i getLastMatchingInDirection(Vector3ic location, Vector3ic direction) {
         Vector3i result = new Vector3i(location);
+        Vector3i testedLocation = new Vector3i();
         while (true) {
-            Vector3i testedLocation = result.add(direction, new Vector3i());
+            result.add(direction, testedLocation);
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
             if (!blockFilter.apply(blockEntityAt)) {
                 return result;
             }
-            result = testedLocation;
+            result.set(testedLocation);
         }
     }
 }

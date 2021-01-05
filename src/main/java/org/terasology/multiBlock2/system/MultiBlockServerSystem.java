@@ -300,6 +300,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
     }
 
     private BlockRegion getChunkRegion(Vector3i chunkPos) {
+        //TODO: provide this as utility on Chunks?
         return new BlockRegion(chunkPos.x << Chunks.POWER_X,
                         chunkPos.y << Chunks.POWER_Y,
                         chunkPos.z << Chunks.POWER_Z).setSize(Chunks.CHUNK_SIZE);
