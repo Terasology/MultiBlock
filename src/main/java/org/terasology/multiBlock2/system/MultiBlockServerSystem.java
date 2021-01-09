@@ -192,7 +192,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
 
     @ReceiveEvent
     public void beforeChunkUnloaded(BeforeChunkUnload beforeChunkUnload, EntityRef world) {
-        BlockRegion chunkRegion = getChunkRegion(JomlUtil.from(beforeChunkUnload.getChunkPos()));
+        BlockRegion chunkRegion = getChunkRegion(beforeChunkUnload.getChunkPos());
         Iterator<Map.Entry<BlockRegion, EntityRef>> iterator = loadedMultiBlocks.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<BlockRegion, EntityRef> multiBlock = iterator.next();
@@ -299,11 +299,11 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         }
     }
 
-    private BlockRegion getChunkRegion(Vector3i chunkPos) {
+    private BlockRegion getChunkRegion(Vector3ic chunkPos) {
         //TODO: provide this as utility on Chunks?
-        return new BlockRegion(chunkPos.x << Chunks.POWER_X,
-                        chunkPos.y << Chunks.POWER_Y,
-                        chunkPos.z << Chunks.POWER_Z).setSize(Chunks.CHUNK_SIZE);
+        return new BlockRegion(chunkPos.x() << Chunks.POWER_X,
+                        chunkPos.y() << Chunks.POWER_Y,
+                        chunkPos.z() << Chunks.POWER_Z).setSize(Chunks.CHUNK_SIZE);
     }
 
     private void destroyMultiBlock(EntityRef multiBlockMainBlockEntity) {
