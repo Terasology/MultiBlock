@@ -4,12 +4,13 @@ package org.terasology.multiBlock.recipe;
 
 import com.google.common.base.Predicate;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
+import org.joml.Vector3ic;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.ActivateEvent;
 import org.terasology.logic.location.LocationComponent;
-import org.terasology.math.JomlUtil;
-import org.terasology.math.geom.Vector3i;
+import org.terasology.math.Direction;
 import org.terasology.multiBlock.MultiBlockCallback;
 import org.terasology.multiBlock.MultiBlockFormed;
 import org.terasology.registry.CoreRegistry;
@@ -68,21 +69,21 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
             return false;
         }
 
-        Vector3i blockPosition = targetBlock.getPosition();
+        Vector3i blockPosition = targetBlock.getPosition(new Vector3i());
         BlockEntityRegistry blockEntityRegistry = CoreRegistry.get(BlockEntityRegistry.class);
 
         // Go to minX, minY, minZ
-        int minX = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Vector3i.east()).x;
-        int minY = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(minX, blockPosition.y, blockPosition.z), Vector3i.down()).y;
-        int minZ = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(minX, minY, blockPosition.z), Vector3i.south()).z;
+        int minX = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Direction.RIGHT.asVector3i()).x();
+        int minY = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(minX, blockPosition.y, blockPosition.z), Direction.DOWN.asVector3i()).y();
+        int minZ = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(minX, minY, blockPosition.z), Direction.BACKWARD.asVector3i()).z();
 
         // Since we might have been in the mid of X wall, we need to find another minX:
-        minX = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(minX, minY, minZ), Vector3i.east()).x;
+        minX = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(minX, minY, minZ), Direction.RIGHT.asVector3i()).x();
 
         // Now lets find maxX, maxY and maxZ
-        int maxX = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(minX, minY, minZ), Vector3i.west()).x;
-        int maxY = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(maxX, minY, minZ), Vector3i.up()).y;
-        int maxZ = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(maxX, maxY, minZ), Vector3i.north()).z;
+        int maxX = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(minX, minY, minZ), Direction.LEFT.asVector3i()).x();
+        int maxY = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(maxX, minY, minZ), Direction.UP.asVector3i()).y();
+        int maxZ = getLastMatchingInDirection(blockEntityRegistry, new Vector3i(maxX, maxY, minZ), Direction.FORWARD.asVector3i()).z();
 
         // Now check that all the blocks in the region defined by these boundaries match the criteria
         BlockRegion outsideBlockRegion = new BlockRegion(minX, minY, minZ).union(maxX, maxY, maxZ);
@@ -92,7 +93,7 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
         }
 
         BlockRegion insideBlockRegion =
-                new BlockRegion(minX + 1, minY + 1, minZ + 1).union(maxX - 1, maxY - 1, maxZ - 1);
+            new BlockRegion(minX + 1, minY + 1, minZ + 1).union(maxX - 1, maxY - 1, maxZ - 1);
         for (org.joml.Vector3ic blockLocation : outsideBlockRegion) {
             EntityRef blockEntity = blockEntityRegistry.getBlockEntityAt(blockLocation);
             if (insideBlockRegion.contains(blockLocation)) {
@@ -123,7 +124,7 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
         EntityManager entityManager = CoreRegistry.get(EntityManager.class);
         EntityRef multiBlockEntity = entityManager.create(prefab);
         multiBlockEntity.addComponent(new BlockRegionComponent(outsideBlockRegion));
-        multiBlockEntity.addComponent(new LocationComponent(JomlUtil.from(outsideBlockRegion.center(new Vector3f()))));
+        multiBlockEntity.addComponent(new LocationComponent(outsideBlockRegion.center(new Vector3f())));
 
         callback.multiBlockFormed(outsideBlockRegion, multiBlockEntity, null);
 
@@ -133,10 +134,10 @@ public class SurroundMultiBlockFormItemRecipe implements MultiBlockFormItemRecip
     }
 
 
-    private Vector3i getLastMatchingInDirection(BlockEntityRegistry blockEntityRegistry, Vector3i location, Vector3i direction) {
-        Vector3i result = location;
+    private Vector3ic getLastMatchingInDirection(BlockEntityRegistry blockEntityRegistry, Vector3ic location, Vector3ic direction) {
+        Vector3ic result = location;
         while (true) {
-            Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y, result.z + direction.z);
+            Vector3i testedLocation = new Vector3i(result.x() + direction.x(), result.y() + direction.y(), result.z() + direction.z());
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
             if (!outsideBlock.apply(blockEntityAt)) {
                 return result;
