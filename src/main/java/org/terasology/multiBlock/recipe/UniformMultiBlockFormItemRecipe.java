@@ -4,12 +4,13 @@ package org.terasology.multiBlock.recipe;
 
 import com.google.common.base.Predicate;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
+import org.joml.Vector3ic;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.ActivateEvent;
 import org.terasology.logic.location.LocationComponent;
-import org.terasology.math.JomlUtil;
-import org.terasology.math.geom.Vector3i;
+import org.terasology.math.Direction;
 import org.terasology.multiBlock.MultiBlockCallback;
 import org.terasology.multiBlock.MultiBlockFormed;
 import org.terasology.registry.CoreRegistry;
@@ -30,12 +31,12 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
     private Predicate<EntityRef> activatorFilter;
     private Predicate<ActivateEvent> activateEventFilter;
     private Predicate<EntityRef> blockFilter;
-    private Predicate<org.joml.Vector3ic> sizeFilter;
+    private Predicate<Vector3ic> sizeFilter;
     private String prefab;
     private MultiBlockCallback<Void> callback;
 
     public UniformMultiBlockFormItemRecipe(Predicate<EntityRef> activatorFilter, Predicate<ActivateEvent> activateEventFilter,
-                                           Predicate<EntityRef> blockFilter, Predicate<org.joml.Vector3ic> sizeFilter,
+                                           Predicate<EntityRef> blockFilter, Predicate<Vector3ic> sizeFilter,
                                            String multiBlockPrefab, MultiBlockCallback<Void> callback) {
         this.activatorFilter = activatorFilter;
         this.activateEventFilter = activateEventFilter;
@@ -68,13 +69,13 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
 
         BlockEntityRegistry blockEntityRegistry = CoreRegistry.get(BlockEntityRegistry.class);
 
-        Vector3i blockPosition = targetBlock.getPosition();
-        int minX = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Vector3i.east()).x;
-        int maxX = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Vector3i.west()).x;
-        int minY = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Vector3i.down()).y;
-        int maxY = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Vector3i.up()).y;
-        int minZ = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Vector3i.south()).z;
-        int maxZ = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Vector3i.north()).z;
+        Vector3i blockPosition = targetBlock.getPosition(new Vector3i());
+        int minX = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Direction.RIGHT.asVector3i()).x;
+        int maxX = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Direction.LEFT.asVector3i()).x;
+        int minY = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Direction.DOWN.asVector3i()).y;
+        int maxY = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Direction.UP.asVector3i()).y;
+        int minZ = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Direction.BACKWARD.asVector3i()).z;
+        int maxZ = getLastMatchingInDirection(blockEntityRegistry, blockPosition, Direction.FORWARD.asVector3i()).z;
 
         BlockRegion multiBlockRegion =
                 new BlockRegion(minX, minY, minZ).union(maxX, maxY, maxZ);
@@ -110,7 +111,7 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         EntityManager entityManager = CoreRegistry.get(EntityManager.class);
         EntityRef multiBlockEntity = entityManager.create(prefab);
         multiBlockEntity.addComponent(new BlockRegionComponent(multiBlockRegion));
-        multiBlockEntity.addComponent(new LocationComponent(JomlUtil.from(multiBlockRegion.center(new Vector3f()))));
+        multiBlockEntity.addComponent(new LocationComponent(multiBlockRegion.center(new Vector3f())));
 
         callback.multiBlockFormed(multiBlockRegion, multiBlockEntity, null);
 
@@ -119,15 +120,16 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         return true;
     }
 
-    private Vector3i getLastMatchingInDirection(BlockEntityRegistry blockEntityRegistry, Vector3i location, Vector3i direction) {
-        Vector3i result = location;
+    private Vector3i getLastMatchingInDirection(BlockEntityRegistry blockEntityRegistry, Vector3ic location, Vector3ic direction) {
+        Vector3i result = new Vector3i(location);
+        Vector3i testLocation = new Vector3i();
         while (true) {
-            Vector3i testedLocation = new Vector3i(result.x + direction.x, result.y + direction.y, result.z + direction.z);
-            EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testedLocation);
+            result.add(direction, testLocation);
+            EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testLocation);
             if (!blockFilter.apply(blockEntityAt)) {
                 return result;
             }
-            result = testedLocation;
+            result.set(testLocation);
         }
     }
 }
