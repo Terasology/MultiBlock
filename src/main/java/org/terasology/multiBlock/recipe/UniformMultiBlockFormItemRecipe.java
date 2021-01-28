@@ -124,7 +124,7 @@ public class UniformMultiBlockFormItemRecipe implements MultiBlockFormItemRecipe
         Vector3i result = new Vector3i(location);
         Vector3i testLocation = new Vector3i();
         while (true) {
-            testLocation.set(result.x + direction.x(), result.y + direction.y(), result.z + direction.z());
+            result.add(direction, testLocation);
             EntityRef blockEntityAt = blockEntityRegistry.getBlockEntityAt(testLocation);
             if (!blockFilter.apply(blockEntityAt)) {
                 return result;
