@@ -20,7 +20,6 @@ import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.math.Direction;
-import org.terasology.math.Region3i;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 import org.terasology.world.BlockEntityRegistry;
 import org.terasology.world.block.BlockRegion;

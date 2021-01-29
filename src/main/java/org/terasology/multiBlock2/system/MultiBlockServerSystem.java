@@ -34,7 +34,6 @@ import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.health.event.BeforeDamagedEvent;
 import org.terasology.logic.location.LocationComponent;
-import org.terasology.math.JomlUtil;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 import org.terasology.multiBlock2.MultiBlockRegistry;
 import org.terasology.multiBlock2.block.VisibilityEnabledBlockFamily;
