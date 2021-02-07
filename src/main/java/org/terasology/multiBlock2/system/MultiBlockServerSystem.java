@@ -1,18 +1,5 @@
-/*
- * Copyright 2015 MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2021 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 package org.terasology.multiBlock2.system;
 
 import com.google.common.collect.Iterables;
@@ -132,9 +119,9 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
 
     @Override
     public EntityRef getMultiBlockAtLocation(Vector3i location, String type) {
-        for (Map.Entry<BlockRegion, EntityRef> region3iEntityRefEntry : loadedMultiBlocks.entrySet()) {
-            if (region3iEntityRefEntry.getKey().contains(location)) {
-                EntityRef entity = region3iEntityRefEntry.getValue();
+        for (Map.Entry<BlockRegion, EntityRef> regionEntityRefEntry : loadedMultiBlocks.entrySet()) {
+            if (regionEntityRefEntry.getKey().contains(location)) {
+                EntityRef entity = regionEntityRefEntry.getValue();
                 MultiBlockComponent multiBlock = entity.getComponent(MultiBlockComponent.class);
                 EntityRef mainBlockEntity = multiBlock.getMainBlockEntity();
                 MultiBlockMainComponent mainComponent = mainBlockEntity.getComponent(MultiBlockMainComponent.class);
@@ -207,8 +194,8 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
 
     //    @ReceiveEvent
 //    public void afterChunkLoaded(OnChunkLoaded chunkLoaded, EntityRef world) {
-//        Region3i chunkRegion = getChunkRegion(chunkLoaded.getChunkPos());
-//        for (Vector3i vector3i : chunkRegion) {
+//        BlockRegion chunkRegion = getChunkRegion(chunkLoaded.getChunkPos());
+//        for (Vector3ic vector3i : chunkRegion) {
 //            EntityRef blockEntity = blockEntityRegistry.getBlockEntityAt(vector3i);
 //            MultiBlockMainComponent multiBlockMain = blockEntity.getComponent(MultiBlockMainComponent.class);
 //            if (multiBlockMain != null) {
