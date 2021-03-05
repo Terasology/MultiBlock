@@ -20,6 +20,6 @@ public class BlockUriEntityFilter implements Predicate<EntityRef> {
     @Override
     public boolean apply(EntityRef entity) {
         BlockComponent component = entity.getComponent(BlockComponent.class);
-        return component != null && component.block.getURI().equals(blockUri);
+        return component != null && component.getBlock().getURI().equals(blockUri);
     }
 }
