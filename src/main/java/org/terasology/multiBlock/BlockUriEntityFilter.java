@@ -3,9 +3,9 @@
 package org.terasology.multiBlock;
 
 import com.google.common.base.Predicate;
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.world.block.BlockComponent;
-import org.terasology.world.block.BlockUri;
+import org.terasology.engine.entitySystem.entity.EntityRef;
+import org.terasology.engine.world.block.BlockComponent;
+import org.terasology.engine.world.block.BlockUri;
 
 /**
  * @author Marcin Sciesinski <marcins78@gmail.com>

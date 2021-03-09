@@ -15,7 +15,7 @@
  */
 package org.terasology.multiBlock2.block;
 
-import org.terasology.world.block.Block;
+import org.terasology.engine.world.block.Block;
 
 public interface VisibilityEnabledBlockFamily {
     Block getInvisibleBlock(Block currentBlock);

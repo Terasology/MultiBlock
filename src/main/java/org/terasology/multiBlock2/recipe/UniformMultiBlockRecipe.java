@@ -18,11 +18,11 @@ package org.terasology.multiBlock2.recipe;
 import com.google.common.base.Predicate;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.math.Direction;
+import org.terasology.engine.entitySystem.entity.EntityRef;
+import org.terasology.engine.math.Direction;
+import org.terasology.engine.world.BlockEntityRegistry;
+import org.terasology.engine.world.block.BlockRegion;
 import org.terasology.multiBlock2.MultiBlockDefinition;
-import org.terasology.world.BlockEntityRegistry;
-import org.terasology.world.block.BlockRegion;
 
 public abstract class UniformMultiBlockRecipe<T extends MultiBlockDefinition> implements MultiBlockRecipe<T> {
     private BlockEntityRegistry blockEntityRegistry;

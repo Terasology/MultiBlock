@@ -16,8 +16,8 @@
 package org.terasology.multiBlock2.component;
 
 import org.joml.Vector3i;
-import org.terasology.entitySystem.Component;
-import org.terasology.world.block.ForceBlockActive;
+import org.terasology.engine.entitySystem.Component;
+import org.terasology.engine.world.block.ForceBlockActive;
 
 /**
  * Not for external use!

@@ -16,7 +16,7 @@
 package org.terasology.multiBlock2;
 
 import org.joml.Vector3i;
-import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.engine.entitySystem.entity.EntityRef;
 import org.terasology.multiBlock2.recipe.MultiBlockRecipe;
 
 public interface MultiBlockRegistry {

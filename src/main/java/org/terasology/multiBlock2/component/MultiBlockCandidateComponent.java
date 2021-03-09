@@ -15,7 +15,7 @@
  */
 package org.terasology.multiBlock2.component;
 
-import org.terasology.entitySystem.Component;
+import org.terasology.engine.entitySystem.Component;
 
 import java.util.Collections;
 import java.util.Set;

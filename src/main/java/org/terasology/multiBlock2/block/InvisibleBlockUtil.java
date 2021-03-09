@@ -18,10 +18,10 @@ package org.terasology.multiBlock2.block;
 
 import org.terasology.assets.ResourceUrn;
 import org.terasology.assets.management.AssetManager;
-import org.terasology.world.block.BlockPart;
-import org.terasology.world.block.loader.BlockFamilyDefinition;
-import org.terasology.world.block.loader.SectionDefinitionData;
-import org.terasology.world.block.tiles.BlockTile;
+import org.terasology.engine.world.block.BlockPart;
+import org.terasology.engine.world.block.loader.BlockFamilyDefinition;
+import org.terasology.engine.world.block.loader.SectionDefinitionData;
+import org.terasology.engine.world.block.tiles.BlockTile;
 
 import java.util.Map;
 

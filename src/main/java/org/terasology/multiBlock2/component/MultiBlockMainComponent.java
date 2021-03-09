@@ -16,11 +16,11 @@
 package org.terasology.multiBlock2.component;
 
 import org.joml.Vector3i;
-import org.terasology.entitySystem.Component;
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.world.block.BlockRegion;
-import org.terasology.world.block.BlockRegionc;
-import org.terasology.world.block.ForceBlockActive;
+import org.terasology.engine.entitySystem.Component;
+import org.terasology.engine.entitySystem.entity.EntityRef;
+import org.terasology.engine.world.block.BlockRegion;
+import org.terasology.engine.world.block.BlockRegionc;
+import org.terasology.engine.world.block.ForceBlockActive;
 
 import java.util.Collection;
 import java.util.Collections;
