@@ -3,7 +3,7 @@
 package org.terasology.multiBlock2.block;
 
 import com.google.common.collect.Maps;
-import org.terasology.assets.management.AssetManager;
+import org.terasology.gestalt.assets.management.AssetManager;
 import org.terasology.engine.math.Rotation;
 import org.terasology.engine.math.Side;
 import org.terasology.engine.registry.In;
@@ -17,7 +17,7 @@ import org.terasology.engine.world.block.family.SideDefinedBlockFamily;
 import org.terasology.engine.world.block.loader.BlockFamilyDefinition;
 import org.terasology.engine.world.block.loader.SectionDefinitionData;
 import org.terasology.engine.world.block.shapes.BlockShape;
-import org.terasology.naming.Name;
+import org.terasology.gestalt.naming.Name;
 
 import java.util.HashMap;
 import java.util.Map;

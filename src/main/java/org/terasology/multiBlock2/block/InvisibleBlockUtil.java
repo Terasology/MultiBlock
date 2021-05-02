@@ -16,8 +16,8 @@
 package org.terasology.multiBlock2.block;
 
 
-import org.terasology.assets.ResourceUrn;
-import org.terasology.assets.management.AssetManager;
+import org.terasology.gestalt.assets.ResourceUrn;
+import org.terasology.gestalt.assets.management.AssetManager;
 import org.terasology.engine.world.block.BlockPart;
 import org.terasology.engine.world.block.loader.BlockFamilyDefinition;
 import org.terasology.engine.world.block.loader.SectionDefinitionData;
