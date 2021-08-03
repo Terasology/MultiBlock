@@ -32,6 +32,7 @@ import org.terasology.engine.world.block.entity.placement.PlaceBlocks;
 import org.terasology.engine.world.block.family.BlockFamily;
 import org.terasology.engine.world.chunks.Chunks;
 import org.terasology.engine.world.chunks.event.BeforeChunkUnload;
+import org.terasology.multiBlock2.DefaultMultiBlockDefinition;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 import org.terasology.multiBlock2.MultiBlockRegistry;
 import org.terasology.multiBlock2.block.VisibilityEnabledBlockFamily;
@@ -44,7 +45,10 @@ import org.terasology.multiBlock2.event.BeforeMultiBlockUnloaded;
 import org.terasology.multiBlock2.event.MultiBlockFormed;
 import org.terasology.multiBlock2.event.MultiBlockLoaded;
 import org.terasology.multiBlock2.recipe.MultiBlockRecipe;
+import org.terasology.structureTemplates.components.SpawnBlockRegionsComponent;
+import org.terasology.structureTemplates.internal.events.SendRegionEvent;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -109,6 +113,28 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
                     }
                 }
             }
+        }
+    }
+    @ReceiveEvent
+    public void onStructureSpawn(SendRegionEvent event, EntityRef entity) {
+        ArrayList<Vector3i> blocks = new ArrayList<>();
+        Vector3f location = new Vector3f();
+        for (SpawnBlockRegionsComponent.RegionToFill region : event.regions) {
+            for (Vector3ic pos : region.region) {
+                blocks.add(new Vector3i(pos));
+            }
+        }
+        entity.getComponent(LocationComponent.class).getWorldPosition(location);
+        MultiBlockDefinition definition = new DefaultMultiBlockDefinition("Structure",
+                new Vector3i((int) location.x(), (int) location.y(), (int) location.z()), blocks);
+        Set<EntityRef> multiBlockMainBlockEntities = getMultiBlockMainBlocksInTheWay(definition);
+        if (areAllMultiBlocksInTheWayRelevant(multiBlockMainBlockEntities)) {
+            // Destroy all multi blocks in the way
+            for (EntityRef multiBlockMainBlockEntity : multiBlockMainBlockEntities) {
+                destroyMultiBlock(multiBlockMainBlockEntity);
+            }
+
+            createMultiBlock(definition);
         }
     }
 
