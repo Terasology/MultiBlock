@@ -121,6 +121,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         Vector3f location = new Vector3f();
         for (SpawnBlockRegionsComponent.RegionToFill region : event.regions) {
             for (Vector3ic pos : region.region) {
+                worldProvider.getBlock(pos).setHardness(10);
                 blocks.add(new Vector3i(pos));
             }
         }
