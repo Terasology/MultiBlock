@@ -44,9 +44,8 @@ import org.terasology.multiBlock2.event.BeforeMultiBlockUnformed;
 import org.terasology.multiBlock2.event.BeforeMultiBlockUnloaded;
 import org.terasology.multiBlock2.event.MultiBlockFormed;
 import org.terasology.multiBlock2.event.MultiBlockLoaded;
+import org.terasology.multiBlock2.event.SendRegionEvent;
 import org.terasology.multiBlock2.recipe.MultiBlockRecipe;
-import org.terasology.structureTemplates.components.SpawnBlockRegionsComponent;
-import org.terasology.structureTemplates.internal.events.SendRegionEvent;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -119,11 +118,9 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
     public void onStructureSpawn(SendRegionEvent event, EntityRef entity) {
         ArrayList<Vector3i> blocks = new ArrayList<>();
         Vector3f location = new Vector3f();
-        for (SpawnBlockRegionsComponent.RegionToFill region : event.regions) {
-            for (Vector3ic pos : region.region) {
-                worldProvider.getBlock(pos).setHardness(10);
-                blocks.add(new Vector3i(pos));
-            }
+        for (Vector3i pos : event.regions) {
+            worldProvider.getBlock(pos).setHardness(10);
+            blocks.add(new Vector3i(pos));
         }
         entity.getComponent(LocationComponent.class).getWorldPosition(location);
         MultiBlockDefinition definition = new DefaultMultiBlockDefinition("Structure",
