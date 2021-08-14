@@ -15,7 +15,7 @@ public class MultiBlockCandidateComponent implements Component<MultiBlockCandida
     }
 
     @Override
-    public void copy(MultiBlockCandidateComponent other) {
+    public void copyFrom(MultiBlockCandidateComponent other) {
         this.type = other.type;
     }
 }

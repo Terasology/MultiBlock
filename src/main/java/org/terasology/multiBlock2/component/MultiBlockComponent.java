@@ -29,7 +29,7 @@ public class MultiBlockComponent implements Component<MultiBlockComponent> {
     }
 
     @Override
-    public void copy(MultiBlockComponent other) {
+    public void copyFrom(MultiBlockComponent other) {
         this.type = other.type;
         this.mainBlockEntity = other.mainBlockEntity;
     }

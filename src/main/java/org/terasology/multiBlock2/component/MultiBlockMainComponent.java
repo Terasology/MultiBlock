@@ -55,7 +55,7 @@ public class MultiBlockMainComponent implements Component<MultiBlockMainComponen
     }
 
     @Override
-    public void copy(MultiBlockMainComponent other) {
+    public void copyFrom(MultiBlockMainComponent other) {
         this.aabb = new BlockRegion(other.aabb);
         this.multiBlockEntity = other.multiBlockEntity;
         this.multiBlockMembers = other.multiBlockMembers.stream()

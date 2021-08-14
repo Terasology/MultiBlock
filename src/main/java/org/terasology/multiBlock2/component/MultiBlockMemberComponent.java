@@ -25,7 +25,7 @@ public class MultiBlockMemberComponent implements Component<MultiBlockMemberComp
     }
 
     @Override
-    public void copy(MultiBlockMemberComponent other) {
+    public void copyFrom(MultiBlockMemberComponent other) {
         this.mainBlockLocation = new Vector3i(other.mainBlockLocation);
     }
 }
