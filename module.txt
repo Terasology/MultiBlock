@@ -8,6 +8,10 @@
         {
             "id": "Health",
             "minVersion": "2.0.0-SNAPSHOT"
+        },
+        {
+            "id": "Towers",
+            "minVersion": "0.1.0-SNAPSHOT"
         }
     ],
     "isServerSideOnly": false,

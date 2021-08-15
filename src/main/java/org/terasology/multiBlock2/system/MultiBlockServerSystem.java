@@ -40,12 +40,15 @@ import org.terasology.multiBlock2.component.MultiBlockCandidateComponent;
 import org.terasology.multiBlock2.component.MultiBlockComponent;
 import org.terasology.multiBlock2.component.MultiBlockMainComponent;
 import org.terasology.multiBlock2.component.MultiBlockMemberComponent;
+import org.terasology.multiBlock2.component.TowerTypeComponent;
 import org.terasology.multiBlock2.event.BeforeMultiBlockUnformed;
 import org.terasology.multiBlock2.event.BeforeMultiBlockUnloaded;
 import org.terasology.multiBlock2.event.MultiBlockFormed;
 import org.terasology.multiBlock2.event.MultiBlockLoaded;
 import org.terasology.multiBlock2.event.SendRegionEvent;
 import org.terasology.multiBlock2.recipe.MultiBlockRecipe;
+import org.terasology.towers.components.TowerComponent;
+import org.terasology.towers.events.TowerCreatedEvent;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -122,6 +125,10 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
             worldProvider.getBlock(pos).setHardness(10);
             blocks.add(new Vector3i(pos));
         }
+        TowerTypeComponent towerType = null;
+        if (entity.hasComponent(TowerTypeComponent.class)) {
+            towerType = entity.getComponent(TowerTypeComponent.class);
+        }
         entity.getComponent(LocationComponent.class).getWorldPosition(location);
         MultiBlockDefinition definition = new DefaultMultiBlockDefinition("Structure",
                 new Vector3i((int) location.x(), (int) location.y(), (int) location.z()), blocks);
@@ -132,7 +139,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
                 destroyMultiBlock(multiBlockMainBlockEntity);
             }
 
-            createMultiBlock(definition);
+            createMultiBlock(definition, towerType);
         }
     }
 
@@ -174,7 +181,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
                         destroyMultiBlock(multiBlockMainBlockEntity);
                     }
 
-                    createMultiBlock(definition);
+                    createMultiBlock(definition, null);
                 }
             }
         }
@@ -312,8 +319,8 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
     private BlockRegion getChunkRegion(Vector3ic chunkPos) {
         //TODO: provide this as utility on Chunks?
         return new BlockRegion(chunkPos.x() << Chunks.POWER_X,
-                        chunkPos.y() << Chunks.POWER_Y,
-                        chunkPos.z() << Chunks.POWER_Z).setSize(Chunks.CHUNK_SIZE);
+                chunkPos.y() << Chunks.POWER_Y,
+                chunkPos.z() << Chunks.POWER_Z).setSize(Chunks.CHUNK_SIZE);
     }
 
     private void destroyMultiBlock(EntityRef multiBlockMainBlockEntity) {
@@ -341,7 +348,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
     }
 
 
-    private void createMultiBlock(MultiBlockDefinition definition) {
+    private void createMultiBlock(MultiBlockDefinition definition, TowerTypeComponent towerType) {
         Vector3i mainLocation = definition.getMainBlock();
         String multiBlockType = definition.getMultiBlockType();
 
@@ -370,6 +377,14 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         loadedMultiBlocks.put(region, multiBlockEntity);
 
         multiBlockEntity.send(new MultiBlockFormed<>(multiBlockType, definition));
+        if (towerType != null) {
+            TowerComponent towerComponent = new TowerComponent();
+            towerComponent.effector = entityManager.create("MultiBlock:" + towerType.getEffector() + "Effector");
+            towerComponent.targeter = entityManager.create("MultiBlock:" + towerType.getTargeter() + "Effector");
+            towerComponent.targeter.addComponent(new LocationComponent(new Vector3f(mainLocation)));
+            multiBlockEntity.addComponent(towerComponent);
+        }
+        multiBlockEntity.send(new TowerCreatedEvent());
     }
 
     private void setBlockVisibilityIfNeeded(Vector3ic location, boolean visible) {
