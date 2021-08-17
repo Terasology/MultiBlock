@@ -40,7 +40,6 @@ import org.terasology.multiBlock2.component.MultiBlockCandidateComponent;
 import org.terasology.multiBlock2.component.MultiBlockComponent;
 import org.terasology.multiBlock2.component.MultiBlockMainComponent;
 import org.terasology.multiBlock2.component.MultiBlockMemberComponent;
-import org.terasology.multiBlock2.component.TowerTypeComponent;
 import org.terasology.multiBlock2.event.BeforeMultiBlockUnformed;
 import org.terasology.multiBlock2.event.BeforeMultiBlockUnloaded;
 import org.terasology.multiBlock2.event.MultiBlockFormed;
@@ -125,10 +124,6 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
             worldProvider.getBlock(pos).setHardness(10);
             blocks.add(new Vector3i(pos));
         }
-        TowerTypeComponent towerType = null;
-        if (entity.hasComponent(TowerTypeComponent.class)) {
-            towerType = entity.getComponent(TowerTypeComponent.class);
-        }
         entity.getComponent(LocationComponent.class).getWorldPosition(location);
         MultiBlockDefinition definition = new DefaultMultiBlockDefinition("Structure",
                 new Vector3i((int) location.x(), (int) location.y(), (int) location.z()), blocks);
@@ -139,7 +134,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
                 destroyMultiBlock(multiBlockMainBlockEntity);
             }
 
-            createMultiBlock(definition, towerType);
+            createMultiBlock(definition, event.effector, event.targeter);
         }
     }
 
@@ -181,7 +176,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
                         destroyMultiBlock(multiBlockMainBlockEntity);
                     }
 
-                    createMultiBlock(definition, null);
+                    createMultiBlock(definition, null, null);
                 }
             }
         }
@@ -348,7 +343,7 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
     }
 
 
-    private void createMultiBlock(MultiBlockDefinition definition, TowerTypeComponent towerType) {
+    private void createMultiBlock(MultiBlockDefinition definition, String effector, String targeter) {
         Vector3i mainLocation = definition.getMainBlock();
         String multiBlockType = definition.getMultiBlockType();
 
@@ -377,14 +372,14 @@ public class MultiBlockServerSystem extends BaseComponentSystem implements Multi
         loadedMultiBlocks.put(region, multiBlockEntity);
 
         multiBlockEntity.send(new MultiBlockFormed<>(multiBlockType, definition));
-        if (towerType != null) {
+        if (effector != null && targeter != null) {
             TowerComponent towerComponent = new TowerComponent();
-            towerComponent.effector = entityManager.create("MultiBlock:" + towerType.getEffector() + "Effector");
-            towerComponent.targeter = entityManager.create("MultiBlock:" + towerType.getTargeter() + "Effector");
+            towerComponent.effector = entityManager.create("MultiBlock:" + effector + "Effector");
+            towerComponent.targeter = entityManager.create("MultiBlock:" + targeter + "Targeter");
             towerComponent.targeter.addComponent(new LocationComponent(new Vector3f(mainLocation)));
             multiBlockEntity.addComponent(towerComponent);
+            multiBlockEntity.send(new TowerCreatedEvent());
         }
-        multiBlockEntity.send(new TowerCreatedEvent());
     }
 
     private void setBlockVisibilityIfNeeded(Vector3ic location, boolean visible) {

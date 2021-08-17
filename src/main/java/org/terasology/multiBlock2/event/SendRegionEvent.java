@@ -13,8 +13,12 @@ import java.util.List;
  */
 public class SendRegionEvent implements Event {
     public List<Vector3i> regions;
+    public String effector;
+    public String targeter;
 
-    public SendRegionEvent(List<Vector3i> regions) {
+    public SendRegionEvent(List<Vector3i> regions, String effector, String targeter) {
         this.regions = regions;
+        this.effector = effector;
+        this.targeter = targeter;
     }
 }
