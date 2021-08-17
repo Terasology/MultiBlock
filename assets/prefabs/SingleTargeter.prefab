@@ -1,5 +1,4 @@
 {
-  "parent": "GooeyDefence:PlainBlock",
   "DisplayName": {
     "name": "Single Targeter",
     "description": "Targets a single enemy within range. The basic targeter block."

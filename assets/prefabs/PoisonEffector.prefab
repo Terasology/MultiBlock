@@ -1,5 +1,4 @@
 {
-  "parent": "GooeyDefence:PlainBlock",
   "DisplayName": {
     "name": "Poison Effector",
     "description": "Deals an initial damage and then poisons the target, dealing more damage over time. Being hit again by the same effector will cause it to refresh the duration. An enemy can be poisoned by multiple different effectors."

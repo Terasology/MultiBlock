@@ -1,5 +1,4 @@
 {
-  "parent": "GooeyDefence:PlainBlock",
   "DisplayName": {
     "name": "Plain Damage Effector",
     "description": "Simply directly deals damage to the target. Has no other side effect."

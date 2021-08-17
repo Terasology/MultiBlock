@@ -1,5 +1,4 @@
 {
-  "parent": "GooeyDefence:PlainBlock",
   "DisplayName": {
     "name": "Stun Effector",
     "description": "Briefly stuns the target. Stops them from moving for the duration of the stun. Does not deal damage to the target"
