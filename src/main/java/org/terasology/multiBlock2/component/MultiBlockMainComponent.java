@@ -1,36 +1,24 @@
-/*
- * Copyright 2015 MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2021 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 package org.terasology.multiBlock2.component;
 
 import org.joml.Vector3i;
-import org.terasology.engine.entitySystem.Component;
 import org.terasology.engine.entitySystem.entity.EntityRef;
 import org.terasology.engine.world.block.BlockRegion;
 import org.terasology.engine.world.block.BlockRegionc;
 import org.terasology.engine.world.block.ForceBlockActive;
+import org.terasology.gestalt.entitysystem.component.Component;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Not for external use!
  */
 @ForceBlockActive
-public class MultiBlockMainComponent implements Component {
+public class MultiBlockMainComponent implements Component<MultiBlockMainComponent> {
     private List<Vector3i> multiBlockMembers;
     private BlockRegion aabb;
     private EntityRef multiBlockEntity;
@@ -64,5 +52,15 @@ public class MultiBlockMainComponent implements Component {
 
     public void setMultiBlockEntity(EntityRef multiBlockEntity) {
         this.multiBlockEntity = multiBlockEntity;
+    }
+
+    @Override
+    public void copyFrom(MultiBlockMainComponent other) {
+        this.aabb = new BlockRegion(other.aabb);
+        this.multiBlockEntity = other.multiBlockEntity;
+        this.multiBlockMembers = other.multiBlockMembers.stream()
+                .map(Vector3i::new)
+                .collect(Collectors.toList());
+        this.multiBlockType = other.multiBlockType;
     }
 }
