@@ -1,0 +1,9 @@
+{
+  "DisplayName": {
+    "name": "Test Visual Effector",
+    "description": " This effector serves as a test. Simply provides a visual indication for testing targeters"
+  },
+  "VisualEffector": {
+    "drain": 0
+  }
+}
