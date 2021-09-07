@@ -15,7 +15,7 @@
  */
 package org.terasology.multiBlock2.event;
 
-import org.terasology.engine.entitySystem.event.Event;
+import org.terasology.gestalt.entitysystem.event.Event;
 
 public class BeforeMultiBlockUnformed implements Event {
     private String type;

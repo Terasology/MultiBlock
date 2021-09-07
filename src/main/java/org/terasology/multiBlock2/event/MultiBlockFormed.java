@@ -15,7 +15,7 @@
  */
 package org.terasology.multiBlock2.event;
 
-import org.terasology.engine.entitySystem.event.Event;
+import org.terasology.gestalt.entitysystem.event.Event;
 import org.terasology.multiBlock2.MultiBlockDefinition;
 
 public class MultiBlockFormed<T extends MultiBlockDefinition> implements Event {
