@@ -16,7 +16,7 @@
 package org.terasology.multiBlock2.event;
 
 import org.terasology.engine.entitySystem.entity.EntityRef;
-import org.terasology.engine.entitySystem.event.Event;
+import org.terasology.gestalt.entitysystem.event.Event;
 
 public class BeforeMultiBlockUnloaded implements Event {
     private String type;
