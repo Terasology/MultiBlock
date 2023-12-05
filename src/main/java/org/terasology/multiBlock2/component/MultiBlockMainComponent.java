@@ -19,10 +19,10 @@ import java.util.stream.Collectors;
  */
 @ForceBlockActive
 public class MultiBlockMainComponent implements Component<MultiBlockMainComponent> {
-    private List<Vector3i> multiBlockMembers;
-    private BlockRegion aabb;
-    private EntityRef multiBlockEntity;
-    private String multiBlockType;
+    public List<Vector3i> multiBlockMembers;
+    public BlockRegion aabb;
+    public EntityRef multiBlockEntity;
+    public String multiBlockType;
 
     public MultiBlockMainComponent() {
     }
