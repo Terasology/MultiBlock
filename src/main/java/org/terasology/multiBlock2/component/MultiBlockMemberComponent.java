@@ -11,7 +11,7 @@ import org.terasology.gestalt.entitysystem.component.Component;
  */
 @ForceBlockActive
 public class MultiBlockMemberComponent implements Component<MultiBlockMemberComponent> {
-    private Vector3i mainBlockLocation;
+    public Vector3i mainBlockLocation;
 
     public MultiBlockMemberComponent() {
     }

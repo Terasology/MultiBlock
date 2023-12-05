@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.Set;
 
 public class MultiBlockCandidateComponent implements Component<MultiBlockCandidateComponent> {
-    private Set<String> type;
+    public Set<String> type;
 
     public Set<String> getType() {
         return Collections.unmodifiableSet(type);

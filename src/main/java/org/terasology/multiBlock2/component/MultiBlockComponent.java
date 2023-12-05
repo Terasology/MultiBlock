@@ -9,8 +9,8 @@ import org.terasology.gestalt.entitysystem.component.Component;
  * Not for external use!
  */
 public class MultiBlockComponent implements Component<MultiBlockComponent> {
-    private String type;
-    private EntityRef mainBlockEntity;
+    public String type;
+    public EntityRef mainBlockEntity;
 
     public MultiBlockComponent() {
     }
